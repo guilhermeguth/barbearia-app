@@ -1,0 +1,5 @@
+# Ignora arquivos do backend
+/backend/node_modules/
+
+# Ignora arquivos do frontend
+/frontend/node_modules/
