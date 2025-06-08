@@ -1,0 +1,24 @@
+# Barbearia App ✂️
+
+Aplicativo para gerenciamento de uma barbearia.
+
+## Tecnologias
+
+- Node.js  
+- Express  
+- TypeScript  
+- TypeORM  
+- Yarn  
+
+## Como rodar
+
+```bash
+# Clone o repositório
+git clone https://github.com/guilhermeguth/barbearia-app.git
+cd barbearia-app/backend
+
+# Instale as dependências
+yarn install
+
+# Inicie o servidor (modo desenvolvimento)
+yarn dev
