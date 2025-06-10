@@ -1,7 +1,6 @@
 import { Request, Response } from 'express';
 import { barberRepository } from '../repositories/barberRepository';
 import { NotFoundError } from '../helpers/api-errors';
-import AppDataSource from '../data-source';
 
 export class BarberController {
   async create(req: Request, res: Response) {
