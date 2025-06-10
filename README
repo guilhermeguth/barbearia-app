@@ -9,6 +9,10 @@ Aplicativo para gerenciamento de uma barbearia.
 - TypeScript  
 - TypeORM  
 - Yarn  
+- PostgreSQL
+- Deno
+- Nodemon
+- JWT (JSON Web Tokens)
 
 ## Como rodar
 
