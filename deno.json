@@ -1,0 +1,28 @@
+{
+  "fmt": {
+    "exclude": [
+      ".expo",
+      "node_modules",
+      "CHANGELOG.md"
+    ]
+  },
+  "lint": {
+    "rules": {
+      "exclude": [
+        "no-explicit-any",
+        "no-process-global",
+        "no-node-globals"
+      ]
+    },
+    "exclude": [
+      ".expo",
+      "node_modules"
+    ]
+  },
+  "compilerOptions": {
+    "strict": true
+  },
+  "unstable": [
+    "sloppy-imports"
+  ]
+}

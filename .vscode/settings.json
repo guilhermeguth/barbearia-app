@@ -1,0 +1,31 @@
+{
+  "editor.tabSize": 2,
+  "editor.formatOnSave": true,
+  "editor.rulers": [80],
+  "[typescript]": {
+    "editor.defaultFormatter": "dayan.vscode-deno-html-tools"
+  },
+  "[json]": {
+    "editor.defaultFormatter": "dayan.vscode-deno-html-tools"
+  },
+  "[typescriptreact]": {
+    "editor.defaultFormatter": "dayan.vscode-deno-html-tools"
+  },
+  "[html]": {
+    "editor.defaultFormatter": "dayan.vscode-deno-html-tools"
+  },
+  "[css]": {
+    "editor.defaultFormatter": "dayan.vscode-deno-html-tools"
+  },
+  "deno.suggest.imports.hosts": {
+    "https://deno.land": true
+  },
+  "html.format.wrapAttributes": "preserve",
+  "eslint.enable": false,
+  "prettier.enable": false,
+  "files.eol": "\n",
+  "denoHTMLTools.lint": true,
+  "denoHTMLTools.lintOnSave": true,
+  "denoHTMLTools.denoConfig": "./deno.json",
+  "deno.enable": false
+}

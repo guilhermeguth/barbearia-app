@@ -1,0 +1,6 @@
+{
+  "recommendations": [
+    "denoland.vscode-deno",
+    "dayan.vscode-deno-html-tools"
+  ]
+}
