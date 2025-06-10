@@ -10,8 +10,7 @@ routes.get("/", (req, res) => {
 });
 
 // Rotas para o BarberController
-routes.post("/barber/create", barberController.create);
-routes.patch("/barber/update", barberController.update);
+routes.post("/barber/persist", barberController.persist);
 routes.get("/barber/getAll", barberController.getAll);
 
 export default routes;

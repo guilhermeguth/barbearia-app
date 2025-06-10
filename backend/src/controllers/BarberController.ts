@@ -3,45 +3,33 @@ import { barberRepository } from "../repositories/barberRepository";
 import { NotFoundError } from "../helpers/api-errors";
 
 export class BarberController {
-  async create(req: Request, res: Response) {
+  async persist(req: Request, res: Response) {
     const post = req.body;
 
-    const newBarber = barberRepository.create({
-      name: post.name,
-      email: post.email,
-      phone: post.phone,
-      createdAt: new Date(),
-    });
-
-    await barberRepository.save(newBarber);
-
-    res.status(201).json({
-      message: "Barbeiro criado com sucesso",
-      barber: newBarber,
-    });
-  }
-
-  async update(req: Request, res: Response) {
-    const post = req.body;
-
-    const barber = await barberRepository.findOneBy({ id: post.id });
+    let barber = post?.id
+      ? await barberRepository.findOneBy({ id: post.id })
+      : null;
 
     if (!barber) {
-      throw new NotFoundError("Barbeiro não encontrado");
+      barber = barberRepository.create({
+        createdAt: new Date(),
+      });
+    }
+
+    if (!post?.name || !post?.email || !post?.phone) {
+      throw new NotFoundError("Nome, email e telefone são obrigatórios");
     }
 
     barber.name = post.name;
     barber.email = post.email;
     barber.phone = post.phone;
 
-    console.log("Barbeiro atualizado:", barber, post);
-
     await barberRepository.save(barber);
 
-    console.log("Barbeiro atualizado2:", barber);
+    const action = post?.id ? "atualizado" : "cadastrado";
 
-    res.status(200).json({
-      message: "Barbeiro atualizado com sucesso",
+    res.status(201).json({
+      message: `Barbeiro ${action} com sucesso`,
       barber,
     });
   }
