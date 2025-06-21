@@ -34,7 +34,7 @@ export class BarberController {
     });
   }
 
-  async getAll(req: Request, res: Response) {
+  async getAll(_req: Request, res: Response) {
     const barbers = await barberRepository.find();
 
     if (barbers.length === 0) {
