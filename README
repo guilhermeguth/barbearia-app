@@ -5,14 +5,14 @@ Aplicativo para gerenciamento de uma barbearia.
 ## Tecnologias
 
 - Node.js  
+- NPM  
 - Express  
+- Nodemon
 - TypeScript  
 - TypeORM  
-- Yarn  
 - PostgreSQL
 - Deno
-- Nodemon
-- JWT (JSON Web Tokens)
+- JWT (JSON Web Token)
 
 ## Como rodar
 
@@ -22,7 +22,7 @@ git clone https://github.com/guilhermeguth/barbearia-app.git
 cd barbearia-app/backend
 
 # Instale as dependências
-yarn install
+npm install
 
 # Inicie o servidor (modo desenvolvimento)
-yarn dev
+npm run dev
