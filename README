@@ -13,6 +13,9 @@ Aplicativo para gerenciamento de uma barbearia.
 - PostgreSQL
 - Deno
 - JWT (JSON Web Token)
+- Bcrypt
+- faker-js
+- dotenv
 
 ## Como rodar
 
