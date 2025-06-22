@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import { userRepository } from "../repositories/userReposirory";
+import { userRepository } from "../repositories/userRepository";
 import { BadRequestError } from "../helpers/api-errors";
 import jwt from "jsonwebtoken";
 import bcrypt from "bcrypt";

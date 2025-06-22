@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
 import { BadRequestError } from "../helpers/api-errors";
-import { userRepository } from "../repositories/userReposirory";
+import { userRepository } from "../repositories/userRepository";
 import bcrypt from "bcrypt";
 
 export class UserController {
