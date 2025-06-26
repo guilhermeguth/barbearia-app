@@ -6,7 +6,6 @@ import { authMiddleware } from "./middlewares/authMiddleware";
 
 const routes = Router();
 
-// Controllers
 const barberController = new BarberController();
 const userController = new UserController();
 const authController = new AuthController();

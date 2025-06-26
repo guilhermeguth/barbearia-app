@@ -9,6 +9,10 @@ export const authMiddleware = async (
   _res: Response,
   next: NextFunction,
 ) => {
+  if (req.method === "OPTIONS") {
+    return next(); // libera preflight
+  }
+
   const { authorization } = req.headers;
 
   if (!authorization) {
