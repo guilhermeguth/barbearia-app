@@ -40,9 +40,9 @@
       </q-toolbar>
     </q-header>
 
-    <q-drawer show-if-above v-model="leftDrawerOpen" side="left" bordered>
+    <q-drawer show-if-above v-model="leftDrawerOpen" side="left" bordered class="drawer-container">
       <!-- Cabeçalho Admin -->
-      <div class="bg-primary text-white q-pa-md">
+      <div class="bg-primary text-white q-pa-md drawer-header">
         <div class="row items-center q-gutter-sm">
           <q-icon name="admin_panel_settings" size="md" />
           <div>
@@ -52,65 +52,67 @@
         </div>
       </div>
       
-      <!-- Menu Links -->
-      <q-list class="q-pt-sm" style="height: calc(100% - 160px); overflow-y: auto;">
-        <q-item to="/dashboard" clickable v-ripple exact-active-class="bg-primary text-white">
-          <q-item-section avatar>
-            <q-icon name="dashboard" />
-          </q-item-section>
-          <q-item-section>
-            <q-item-label>Dashboard</q-item-label>
-          </q-item-section>
-        </q-item>
-        
-        <q-item to="/agendamentos" clickable v-ripple exact-active-class="bg-primary text-white">
-          <q-item-section avatar>
-            <q-icon name="event" />
-          </q-item-section>
-          <q-item-section>
-            <q-item-label>Agendamentos</q-item-label>
-          </q-item-section>
-        </q-item>
-        
-        <q-item to="/barbeiros" clickable v-ripple exact-active-class="bg-primary text-white">
-          <q-item-section avatar>
-            <q-icon name="person" />
-          </q-item-section>
-          <q-item-section>
-            <q-item-label>Barbeiros</q-item-label>
-          </q-item-section>
-        </q-item>
-        
-        <q-item to="/servicos" clickable v-ripple exact-active-class="bg-primary text-white">
-          <q-item-section avatar>
-            <q-icon name="content_cut" />
-          </q-item-section>
-          <q-item-section>
-            <q-item-label>Serviços</q-item-label>
-          </q-item-section>
-        </q-item>
-        
-        <q-item to="/clientes" clickable v-ripple exact-active-class="bg-primary text-white">
-          <q-item-section avatar>
-            <q-icon name="people" />
-          </q-item-section>
-          <q-item-section>
-            <q-item-label>Clientes</q-item-label>
-          </q-item-section>
-        </q-item>
-        
-        <q-item to="/relatorios" clickable v-ripple exact-active-class="bg-primary text-white">
-          <q-item-section avatar>
-            <q-icon name="analytics" />
-          </q-item-section>
-          <q-item-section>
-            <q-item-label>Relatórios</q-item-label>
-          </q-item-section>
-        </q-item>
-      </q-list>
+      <!-- Menu Links Container -->
+      <div class="drawer-content">
+        <q-list class="q-pt-sm drawer-menu-list">
+          <q-item to="/dashboard" clickable v-ripple exact-active-class="bg-primary text-white">
+            <q-item-section avatar>
+              <q-icon name="dashboard" />
+            </q-item-section>
+            <q-item-section>
+              <q-item-label>Dashboard</q-item-label>
+            </q-item-section>
+          </q-item>
+          
+          <q-item to="/agendamentos" clickable v-ripple exact-active-class="bg-primary text-white">
+            <q-item-section avatar>
+              <q-icon name="event" />
+            </q-item-section>
+            <q-item-section>
+              <q-item-label>Agendamentos</q-item-label>
+            </q-item-section>
+          </q-item>
+          
+          <q-item to="/barbeiros" clickable v-ripple exact-active-class="bg-primary text-white">
+            <q-item-section avatar>
+              <q-icon name="person" />
+            </q-item-section>
+            <q-item-section>
+              <q-item-label>Barbeiros</q-item-label>
+            </q-item-section>
+          </q-item>
+          
+          <q-item to="/servicos" clickable v-ripple exact-active-class="bg-primary text-white">
+            <q-item-section avatar>
+              <q-icon name="content_cut" />
+            </q-item-section>
+            <q-item-section>
+              <q-item-label>Serviços</q-item-label>
+            </q-item-section>
+          </q-item>
+          
+          <q-item to="/clientes" clickable v-ripple exact-active-class="bg-primary text-white">
+            <q-item-section avatar>
+              <q-icon name="people" />
+            </q-item-section>
+            <q-item-section>
+              <q-item-label>Clientes</q-item-label>
+            </q-item-section>
+          </q-item>
+          
+          <q-item to="/relatorios" clickable v-ripple exact-active-class="bg-primary text-white">
+            <q-item-section avatar>
+              <q-icon name="analytics" />
+            </q-item-section>
+            <q-item-section>
+              <q-item-label>Relatórios</q-item-label>
+            </q-item-section>
+          </q-item>
+        </q-list>
+      </div>
 
-      <!-- User Info Footer -->
-      <div class="absolute-bottom">
+      <!-- User Info Footer - Sempre fixo no bottom -->
+      <div class="drawer-footer">
         <q-separator />
         <q-item class="user-info-item">
           <q-item-section avatar>
@@ -252,3 +254,112 @@ onMounted(async () => {
   }
 })
 </script>
+
+<style scoped>
+/* Container do drawer com layout flexbox */
+.drawer-container {
+  display: flex;
+  flex-direction: column;
+  height: 100vh !important;
+  position: relative;
+}
+
+/* Header fixo do drawer */
+.drawer-header {
+  flex-shrink: 0; /* Não permite que o header encolha */
+}
+
+/* Área de conteúdo que pode fazer scroll */
+.drawer-content {
+  flex: 1; /* Ocupa todo o espaço disponível */
+  overflow-y: auto; /* Permite scroll vertical */
+  min-height: 0; /* Permite que o flex item encolha */
+  padding-bottom: 80px; /* Espaço para o footer fixo */
+}
+
+/* Lista de menus sem height fixo */
+.drawer-menu-list {
+  /* Remove qualquer height ou overflow definido anteriormente */
+  height: auto !important;
+  overflow: visible !important;
+}
+
+/* Footer fixo do drawer - SEMPRE no bottom */
+.drawer-footer {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  flex-shrink: 0;
+  z-index: 10;
+}
+
+/* Menu do usuário com melhor aparência */
+.user-info-item {
+  min-height: 72px;
+  background: var(--q-primary);
+}
+
+/* Tema escuro - ajustar cores do menu do usuário */
+.body--dark .user-info-item {
+  background: var(--q-dark);
+  border-top: 1px solid var(--q-dark-page);
+}
+
+.body--dark .user-name {
+  color: white !important;
+}
+
+.body--dark .user-email {
+  color: rgba(255, 255, 255, 0.7) !important;
+}
+
+/* Tema claro - ajustar cores do menu do usuário */
+.body--light .user-info-item {
+  background: #f5f5f5;
+  border-top: 1px solid #e0e0e0;
+}
+
+.body--light .user-name {
+  color: var(--q-primary) !important;
+}
+
+.body--light .user-email {
+  color: #666 !important;
+}
+
+/* Botão de toggle do tema */
+.theme-toggle-btn {
+  transition: transform 0.3s ease;
+}
+
+.theme-toggle-btn:hover {
+  transform: scale(1.1);
+}
+
+/* Responsividade para telas menores */
+@media (max-width: 599px) {
+  .drawer-container {
+    width: 280px;
+  }
+}
+
+/* Layout natural sem forçar scroll */
+
+/* Remover scroll desnecessário quando o conteúdo não excede a viewport */
+.q-layout {
+  height: 100vh;
+  overflow: hidden;
+}
+
+.q-page-container {
+  height: auto;
+  overflow: visible;
+}
+
+/* Permitir que as páginas tenham scroll próprio apenas quando necessário */
+.q-page {
+  overflow-y: auto;
+  max-height: calc(100vh - 56px); /* Altura menos o header */
+}
+</style>
