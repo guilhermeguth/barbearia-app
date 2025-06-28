@@ -7,6 +7,7 @@ import { ServiceController } from "./controllers/ServiceController";
 import { CustomerController } from "./controllers/CustomerController";
 import { AppointmentController } from "./controllers/AppointmentController";
 import { authMiddleware } from "./middlewares/authMiddleware";
+import { uploadBarberPhoto } from "./middlewares/uploadMiddleware";
 
 const routes = Router();
 
@@ -27,7 +28,7 @@ routes.use(authMiddleware);
 routes.get("/dashboard", dashboardController.getMetrics);
 
 // Rotas de barbeiros
-routes.post("/barbers", barberController.persist);
+routes.post("/barbers", uploadBarberPhoto.single('photo'), barberController.persist);
 routes.get("/barbers", barberController.getAll);
 routes.delete("/barbers/:id", barberController.delete);
 

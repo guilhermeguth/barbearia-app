@@ -1,2 +1,8 @@
 /node_modules
 /.env
+
+# Uploads - ignorar arquivos mas manter estrutura de pastas
+/uploads/*
+!/uploads/.gitkeep
+!/uploads/barbers/
+!/uploads/barbers/.gitkeep

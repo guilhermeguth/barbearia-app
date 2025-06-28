@@ -57,6 +57,36 @@
           rows-per-page-label="Registros por página:"
           :pagination-label="paginationLabel"
         >
+          <!-- Template para foto -->
+          <template #body-cell-photo="props">
+            <q-td :props="props">
+              <q-avatar 
+                size="40px" 
+                :class="props.value ? 'cursor-pointer' : ''"
+                @click="props.value ? openPhotoDialog(props.value, props.row.name) : null"
+              >
+                <img 
+                  v-if="props.value" 
+                  :src="props.value" 
+                  :alt="`Foto de ${props.row.name}`"
+                  @error="$event.target.src = 'https://via.placeholder.com/40x40/ccc/666?text=?'"
+                  class="cursor-pointer"
+                />
+                <q-icon 
+                  v-else 
+                  name="person" 
+                  size="24px" 
+                  color="grey-5"
+                />
+              </q-avatar>
+              
+              <!-- Tooltip -->
+              <q-tooltip v-if="props.value" class="bg-white text-dark shadow-4">
+                Clique para ampliar a foto
+              </q-tooltip>
+            </q-td>
+          </template>
+
           <!-- Template para ações -->
           <template #body-cell-actions="props">
             <q-td :props="props">
@@ -158,6 +188,44 @@
               :rules="[val => !!val || 'Telefone é obrigatório']"
               prepend-icon="phone"
             />
+
+            <!-- Upload da Foto -->
+            <div class="q-mb-md">
+              <q-label class="q-mb-sm text-subtitle2">Foto do Barbeiro</q-label>
+              
+              <!-- Preview da foto atual -->
+              <div v-if="form.photoPreview || editingBarber?.photoUrl" class="q-mb-md text-center">
+                <q-avatar size="80px" class="q-mb-sm">
+                  <img 
+                    :src="form.photoPreview || editingBarber?.photoUrl" 
+                    :alt="`Foto de ${form.name || 'barbeiro'}`"
+                    @error="$event.target.src = 'https://via.placeholder.com/80x80/ccc/666?text=?'"
+                  />
+                </q-avatar>
+                <div class="text-caption text-grey-6">
+                  {{ form.photoPreview ? 'Nova foto selecionada' : 'Foto atual' }}
+                </div>
+              </div>
+
+              <!-- Input de arquivo -->
+              <q-file
+                v-model="form.photoFile"
+                label="Selecionar foto"
+                outlined
+                accept="image/*"
+                max-file-size="5242880"
+                @update:model-value="onPhotoSelected"
+                @rejected="onPhotoRejected"
+                prepend-icon="photo_camera"
+                hint="Formatos aceitos: JPG, PNG, GIF, WebP (máximo 5MB)"
+                clearable
+                @clear="clearPhoto"
+              >
+                <template #prepend>
+                  <q-icon name="photo_camera" />
+                </template>
+              </q-file>
+            </div>
           </q-form>
         </q-card-section>
 
@@ -210,6 +278,40 @@
         </q-card-actions>
       </q-card>
     </q-dialog>
+
+    <!-- Dialog de visualização de foto -->
+    <q-dialog v-model="showPhotoDialog" @hide="closePhotoDialog">
+      <q-card class="photo-dialog">
+        <q-card-section class="bg-primary text-white q-pa-md">
+          <div class="text-h6 flex items-center">
+            <q-icon name="photo" class="q-mr-sm" />
+            Foto de {{ selectedPhoto.barberName }}
+          </div>
+        </q-card-section>
+
+        <q-card-section class="q-pa-none">
+          <div class="photo-container">
+            <img 
+              :src="selectedPhoto.url" 
+              :alt="`Foto de ${selectedPhoto.barberName}`"
+              @error="$event.target.src = 'https://via.placeholder.com/400x400/ccc/666?text=Erro+ao+carregar'"
+              class="full-width"
+              style="max-height: 70vh; object-fit: contain;"
+            />
+          </div>
+        </q-card-section>
+
+        <q-card-actions align="right" class="q-pa-md">
+          <q-btn
+            flat
+            label="Fechar"
+            @click="closePhotoDialog"
+            color="primary"
+            icon="close"
+          />
+        </q-card-actions>
+      </q-card>
+    </q-dialog>
   </q-page>
 </template>
 
@@ -224,26 +326,32 @@ const filter = ref('')
 const loading = ref(false)
 const showDialog = ref(false)
 const showDeleteDialog = ref(false)
+const showPhotoDialog = ref(false)
 const saving = ref(false)
 const deleting = ref(false)
 const editingBarber = ref(null)
 const barberToDelete = ref(null)
+const selectedPhoto = ref({
+  url: '',
+  barberName: ''
+})
 
 // Formulário
 const form = ref({
   name: '',
   email: '',
-  phone: ''
+  phone: '',
+  photoFile: null,
+  photoPreview: null
 })
 
 // Configuração da tabela
 const columns = [
   {
-    name: 'id',
-    label: 'ID',
-    field: 'id',
-    align: 'left',
-    sortable: true,
+    name: 'photo',
+    label: 'Foto',
+    field: 'photoUrl',
+    align: 'center',
     style: 'width: 80px'
   },
   {
@@ -319,6 +427,58 @@ const paginationLabel = (firstRowIndex, endRowIndex, totalRowsNumber) => {
   return `${firstRowIndex}-${endRowIndex} de ${totalRowsNumber}`
 }
 
+// Funções para upload de foto
+function onPhotoSelected(file) {
+  if (file) {
+    // Criar preview da imagem
+    const reader = new FileReader()
+    reader.onload = (e) => {
+      form.value.photoPreview = e.target.result
+    }
+    reader.readAsDataURL(file)
+  }
+}
+
+function onPhotoRejected(rejectedEntries) {
+  const rejection = rejectedEntries[0]
+  let message = 'Erro ao selecionar arquivo'
+  
+  if (rejection.failedPropValidation === 'max-file-size') {
+    message = 'Arquivo muito grande. Máximo 5MB'
+  } else if (rejection.failedPropValidation === 'accept') {
+    message = 'Tipo de arquivo não aceito. Use apenas imagens'
+  }
+  
+  Notify.create({
+    type: 'negative',
+    message,
+    position: 'bottom-right',
+    icon: 'error'
+  })
+}
+
+function clearPhoto() {
+  form.value.photoFile = null
+  form.value.photoPreview = null
+}
+
+// Funções para dialog de visualização de foto
+function openPhotoDialog(photoUrl, barberName) {
+  selectedPhoto.value = {
+    url: photoUrl,
+    barberName: barberName
+  }
+  showPhotoDialog.value = true
+}
+
+function closePhotoDialog() {
+  showPhotoDialog.value = false
+  selectedPhoto.value = {
+    url: '',
+    barberName: ''
+  }
+}
+
 // Métodos
 async function loadBarbers() {
   loading.value = true
@@ -360,13 +520,17 @@ function openDialog(barber = null) {
     form.value = {
       name: barber.name,
       email: barber.email,
-      phone: barber.phone
+      phone: barber.phone,
+      photoFile: null,
+      photoPreview: null
     }
   } else {
     form.value = {
       name: '',
       email: '',
-      phone: ''
+      phone: '',
+      photoFile: null,
+      photoPreview: null
     }
   }
   
@@ -379,7 +543,9 @@ function closeDialog() {
   form.value = {
     name: '',
     email: '',
-    phone: ''
+    phone: '',
+    photoFile: null,
+    photoPreview: null
   }
 }
 
@@ -396,12 +562,26 @@ async function saveBarber() {
   saving.value = true
   
   try {
-    const data = {
-      ...form.value,
-      ...(editingBarber.value ? { id: editingBarber.value.id } : {})
+    // Criar FormData para envio do arquivo
+    const formData = new FormData()
+    formData.append('name', form.value.name)
+    formData.append('email', form.value.email)
+    formData.append('phone', form.value.phone)
+    
+    if (editingBarber.value) {
+      formData.append('id', editingBarber.value.id.toString())
+    }
+    
+    // Adicionar foto se selecionada
+    if (form.value.photoFile) {
+      formData.append('photo', form.value.photoFile)
     }
 
-    const response = await axios.post('/barbers', data)
+    const response = await axios.post('/barbers', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data'
+      }
+    })
     
     Notify.create({
       type: 'positive',
@@ -491,6 +671,34 @@ onMounted(() => {
   background-color: #f9f9f9;
 }
 
+/* Estilos para o dialog de foto */
+.photo-dialog {
+  max-width: 90vw;
+  max-height: 90vh;
+}
+
+.photo-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: #f5f5f5;
+}
+
+.photo-container img {
+  border-radius: 4px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+/* Cursor pointer para fotos clicáveis */
+.cursor-pointer {
+  cursor: pointer;
+  transition: transform 0.2s ease;
+}
+
+.cursor-pointer:hover {
+  transform: scale(1.05);
+}
+
 @media (max-width: 600px) {
   .q-page {
     padding: 16px 8px;
@@ -498,6 +706,11 @@ onMounted(() => {
   
   .barber-card {
     margin: 0 -8px;
+  }
+  
+  .photo-dialog {
+    max-width: 95vw;
+    max-height: 80vh;
   }
 }
 </style>

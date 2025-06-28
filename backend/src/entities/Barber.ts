@@ -23,6 +23,9 @@ export class Barber {
   @Column({ type: "varchar", length: 15 })
   phone: string;
 
+  @Column({ type: "varchar", length: 500, nullable: true })
+  photoUrl: string;
+
   @Column({ type: "timestamp", default: () => "CURRENT_TIMESTAMP" })
   createdAt: Date;
 

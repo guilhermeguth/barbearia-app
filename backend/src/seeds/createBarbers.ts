@@ -41,6 +41,7 @@ export async function createBarbers() {
       name,
       email,
       phone,
+      photoUrl: faker.image.avatar(), // Gerar avatar aleatório
       user: savedUser,
       userId: savedUser.id,
       createdAt: new Date(),
