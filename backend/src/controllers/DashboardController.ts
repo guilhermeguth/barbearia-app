@@ -1,8 +1,8 @@
 import { Request, Response } from "express";
 import { barberRepository } from "../repositories/barberRepository";
 import { userRepository } from "../repositories/userRepository";
+import { serviceRepository } from "../repositories/serviceRepository";
 // import { appointmentRepository } from "../repositories/appointmentRepository";
-// import { serviceRepository } from "../repositories/serviceRepository";
 
 export class DashboardController {
   async getMetrics(_req: Request, res: Response) {
@@ -15,13 +15,15 @@ export class DashboardController {
       const allUsers = await userRepository.find();
       const totalClients = allUsers.length;
       
-      // TODO: Implementar quando tivermos as entidades de appointments e services
+      // Buscar dados dos serviços
+      const allServices = await serviceRepository.find();
+      const totalServices = allServices.length;
+      
+      // TODO: Implementar quando tivermos as entidades de appointments
       // const appointmentsToday = await appointmentRepository
       //   .createQueryBuilder("appointment")
       //   .where("DATE(appointment.createdAt) = CURRENT_DATE")
       //   .getCount();
-      
-      // const totalServices = await serviceRepository.count();
       
       // Por enquanto, dados simulados para agendamentos e receita
       const appointmentsToday = Math.floor(Math.random() * 20) + 5;
@@ -32,12 +34,14 @@ export class DashboardController {
         metrics: {
           appointmentsToday,
           totalBarbers,
+          totalServices,
           revenueToday,
           totalClients
         },
         // Dados adicionais que podem ser úteis
         summary: {
           barbersActive: totalBarbers, // Por enquanto, todos são considerados ativos
+          servicesAvailable: totalServices,
           clientsRegistered: totalClients,
           appointmentsThisMonth: appointmentsToday * 30, // Simulação
           revenueThisMonth: revenueToday * 30 // Simulação
