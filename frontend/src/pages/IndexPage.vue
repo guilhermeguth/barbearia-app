@@ -50,7 +50,30 @@
               </div>
             </div>
             <div class="col-auto q-ml-md">
-              <q-icon name="person" size="2.5rem" class="opacity-60" />
+              <q-icon name="content_cut" size="2.5rem" class="opacity-60" />
+            </div>
+          </div>
+        </q-card-section>
+      </q-card>
+
+      <q-card class="bg-info text-white metric-card">
+        <q-card-section class="q-pa-md">
+          <div class="row items-center no-wrap">
+            <div class="col">
+              <div class="text-subtitle1 text-weight-medium">Clientes Cadastrados</div>
+              <div class="text-h3 text-weight-bold q-mt-xs">
+                <span v-if="loading">...</span>
+                <span v-else>{{ metrics.totalClients }}</span>
+              </div>
+              <div class="text-caption opacity-70 q-mt-xs">
+                <span v-if="loading">carregando...</span>
+                <span v-else>
+                  {{ metrics.totalClients > 0 ? 'clientes ativos' : 'nenhum cadastrado' }}
+                </span>
+              </div>
+            </div>
+            <div class="col-auto q-ml-md">
+              <q-icon name="people" size="2.5rem" class="opacity-60" />
             </div>
           </div>
         </q-card-section>
@@ -60,27 +83,12 @@
         <q-card-section class="q-pa-md">
           <div class="row items-center no-wrap">
             <div class="col">
-              <div class="text-subtitle1 text-weight-medium">Receita Hoje</div>
-              <div class="text-h3 text-weight-bold q-mt-xs">R$ {{ metrics.revenueToday }}</div>
-              <div class="text-caption opacity-70 q-mt-xs">Meta: R$ 1.000</div>
+              <div class="text-subtitle1 text-weight-medium">Serviços Disponíveis</div>
+              <div class="text-h3 text-weight-bold q-mt-xs">{{ metrics.totalServices || 0 }}</div>
+              <div class="text-caption opacity-70 q-mt-xs">serviços oferecidos</div>
             </div>
             <div class="col-auto q-ml-md">
-              <q-icon name="attach_money" size="2.5rem" class="opacity-60" />
-            </div>
-          </div>
-        </q-card-section>
-      </q-card>
-
-      <q-card class="bg-positive text-white metric-card">
-        <q-card-section class="q-pa-md">
-          <div class="row items-center no-wrap">
-            <div class="col">
-              <div class="text-subtitle1 text-weight-medium">Total Clientes</div>
-              <div class="text-h3 text-weight-bold q-mt-xs">{{ metrics.totalClients }}</div>
-              <div class="text-caption opacity-70 q-mt-xs">+12 este mês</div>
-            </div>
-            <div class="col-auto q-ml-md">
-              <q-icon name="people" size="2.5rem" class="opacity-60" />
+              <q-icon name="design_services" size="2.5rem" class="opacity-60" />
             </div>
           </div>
         </q-card-section>
@@ -114,8 +122,8 @@ const loading = ref(false)
 const metrics = ref({
   appointmentsToday: 0,
   activeBarbers: 0,
-  revenueToday: 0,
-  totalClients: 0
+  totalClients: 0,
+  totalServices: 0
 })
 
 onMounted(() => {
@@ -136,8 +144,8 @@ async function loadDashboardData() {
     metrics.value = {
       appointmentsToday: data.metrics.appointmentsToday,
       activeBarbers: data.metrics.totalBarbers,
-      revenueToday: data.metrics.revenueToday,
-      totalClients: data.metrics.totalClients
+      totalClients: data.metrics.totalCustomers,
+      totalServices: data.metrics.totalServices || 0
     }
     
     console.log('Dados do dashboard carregados:', data)
@@ -149,8 +157,8 @@ async function loadDashboardData() {
     metrics.value = {
       appointmentsToday: 0,
       activeBarbers: 0,
-      revenueToday: 0,
-      totalClients: 0
+      totalClients: 0,
+      totalServices: 0
     }
     
     Notify.create({
