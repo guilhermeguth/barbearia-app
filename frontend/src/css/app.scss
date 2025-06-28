@@ -25,6 +25,83 @@
     background-color: rgba(255, 255, 255, 0.03);
   }
   
+  // Correção específica para o drawer/sidebar
+  .q-drawer {
+    background-color: #1a1a1a !important;
+    
+    // Footer do usuário no drawer
+    .absolute-bottom {
+      .q-item {
+        background-color: rgba(255, 255, 255, 0.05) !important;
+        color: #ffffff;
+        
+        .q-item-label {
+          color: #ffffff !important;
+          
+          &.text-grey-7 {
+            color: rgba(255, 255, 255, 0.7) !important;
+          }
+        }
+        
+        .q-avatar {
+          background-color: #1976d2 !important;
+        }
+      }
+      
+      // Menu dropdown do usuário
+      .q-menu .q-list {
+        background-color: #2a2a2a !important;
+        
+        .q-item {
+          background-color: transparent !important;
+          color: #ffffff !important;
+          
+          &:hover {
+            background-color: rgba(255, 255, 255, 0.1) !important;
+          }
+          
+          .q-item-section {
+            color: #ffffff !important;
+          }
+          
+          .q-icon {
+            color: #ffffff !important;
+            
+            &.text-negative {
+              color: #f44336 !important;
+            }
+          }
+        }
+        
+        .q-separator {
+          background-color: rgba(255, 255, 255, 0.2) !important;
+        }
+      }
+    }
+    
+    // Itens do menu principal
+    .q-list .q-item {
+      color: #ffffff !important;
+      
+      .q-item-section {
+        color: #ffffff !important;
+      }
+      
+      .q-icon {
+        color: #ffffff !important;
+      }
+      
+      &:hover {
+        background-color: rgba(255, 255, 255, 0.1) !important;
+      }
+      
+      &.q-router-link--active {
+        background-color: #1976d2 !important;
+        color: #ffffff !important;
+      }
+    }
+  }
+  
   // Correção específica para dialogs
   .q-dialog .q-card {
     background-color: #1e1e1e !important;
@@ -146,6 +223,66 @@
       border: 1px solid rgba(255, 255, 255, 0.1);
     }
   }
+  
+  // Correções para informações do usuário no menu lateral
+  .user-info-item {
+    background-color: rgba(255, 255, 255, 0.05) !important;
+    
+    .q-item-section {
+      color: #ffffff !important;
+      
+      .q-item-label {
+        color: #ffffff !important;
+        
+        &.caption {
+          color: rgba(255, 255, 255, 0.7) !important;
+        }
+      }
+    }
+    
+    .q-avatar {
+      background-color: #1976d2 !important;
+    }
+    
+    .q-btn {
+      color: rgba(255, 255, 255, 0.8) !important;
+      
+      &:hover {
+        background-color: rgba(255, 255, 255, 0.1) !important;
+      }
+    }
+  }
+  
+  .user-name {
+    color: #ffffff !important;
+  }
+  
+  .user-email {
+    color: rgba(255, 255, 255, 0.7) !important;
+  }
+  
+  // Correção específica para o separator acima da seção do usuário
+  .absolute-bottom {
+    .q-separator {
+      background-color: rgba(255, 255, 255, 0.1) !important;
+    }
+  }
+}
+
+// Estilos para informações do usuário - tema claro
+.user-info-item {
+  background-color: #f5f5f5;
+  transition: background-color 0.3s ease;
+}
+
+.user-name {
+  color: #1a1a1a;
+  transition: color 0.3s ease;
+}
+
+.user-email {
+  color: #666;
+  transition: color 0.3s ease;
 }
 
 // Melhorias para o botão de tema
