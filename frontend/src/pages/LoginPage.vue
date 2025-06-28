@@ -1,13 +1,27 @@
 <template>
   <q-layout>
     <q-page-container>
-      <q-page class="flex flex-center bg-grey-1">
+      <q-page class="flex flex-center login-page">
+        <!-- Botão de tema no canto superior direito -->
+        <div class="absolute-top-right q-pa-md">
+          <q-btn
+            flat
+            round
+            :icon="$q.dark.isActive ? 'light_mode' : 'dark_mode'"
+            aria-label="Alternar tema"
+            @click="toggleTheme"
+            class="theme-toggle-btn"
+          >
+            <q-tooltip>{{ $q.dark.isActive ? 'Tema claro' : 'Tema escuro' }}</q-tooltip>
+          </q-btn>
+        </div>
+
         <div class="login-container">
           <!-- Logo/Header -->
           <div class="text-center q-mb-lg">
             <q-icon name="content_cut" size="4rem" color="primary" />
-            <h4 class="q-ma-sm">Barbearia App</h4>
-            <p class="text-grey-7">Faça login para acessar o sistema</p>
+            <h4 class="q-ma-sm login-title">Barbearia App</h4>
+            <p class="login-subtitle">Faça login para acessar o sistema</p>
           </div>
 
           <!-- Formulário de Login -->
@@ -108,13 +122,14 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import { Notify } from 'quasar'
+import { Notify, useQuasar } from 'quasar'
 import { useAuthStore } from 'src/stores/auth'
 
 const router = useRouter()
 const authStore = useAuthStore()
+const $q = useQuasar()
 
 // Estado do componente
 const form = ref({
@@ -127,6 +142,22 @@ const showPassword = ref(false)
 const showForgotPassword = ref(false)
 const forgotEmail = ref('')
 const isLoading = ref(false)
+
+// Função para alternar tema
+function toggleTheme() {
+  $q.dark.toggle()
+  
+  // Salvar preferência no localStorage
+  localStorage.setItem('darkMode', $q.dark.isActive.toString())
+  
+  Notify.create({
+    type: 'positive',
+    message: `Tema ${$q.dark.isActive ? 'escuro' : 'claro'} ativado`,
+    position: 'bottom-right',
+    icon: $q.dark.isActive ? 'dark_mode' : 'light_mode',
+    timeout: 1500
+  })
+}
 
 // Função de login
 async function handleLogin() {
@@ -226,17 +257,86 @@ function handleForgotPassword() {
   showForgotPassword.value = false
   forgotEmail.value = ''
 }
+
+// Carregar preferência de tema ao montar o componente
+onMounted(() => {
+  const savedDarkMode = localStorage.getItem('darkMode')
+  if (savedDarkMode !== null) {
+    $q.dark.set(savedDarkMode === 'true')
+  }
+})
 </script>
 
 <style scoped>
+.login-page {
+  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+  min-height: 100vh;
+  transition: background 0.3s ease;
+}
+
 .login-container {
   width: 100%;
   max-width: 400px;
   padding: 20px;
+  position: relative;
 }
 
 .login-card {
-  box-shadow: 0 4px 25px rgba(0,0,0,0.1);
+  box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+  border-radius: 16px;
+  backdrop-filter: blur(10px);
+  background: rgba(255, 255, 255, 0.95);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  transition: all 0.3s ease;
+}
+
+.login-title {
+  color: #1976d2;
+  font-weight: 600;
+  margin: 0;
+  transition: color 0.3s ease;
+}
+
+.login-subtitle {
+  color: #666;
+  margin: 0;
+  transition: color 0.3s ease;
+}
+
+.theme-toggle-btn {
+  backdrop-filter: blur(10px);
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 50%;
+}
+
+/* Tema Dark */
+.body--dark {
+  .login-page {
+    background: linear-gradient(135deg, #0c0c0c 0%, #1a1a1a 50%, #2d2d2d 100%);
+  }
+  
+  .login-card {
+    background: rgba(30, 30, 30, 0.95);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+  }
+  
+  .login-title {
+    color: #64b5f6;
+  }
+  
+  .login-subtitle {
+    color: #bbb;
+  }
+  
+  .theme-toggle-btn {
+    background: rgba(255, 255, 255, 0.05);
+    color: #fff;
+    
+    &:hover {
+      background: rgba(255, 255, 255, 0.1);
+    }
+  }
 }
 
 @media (max-width: 600px) {
@@ -244,5 +344,8 @@ function handleForgotPassword() {
     max-width: 350px;
     padding: 15px;
   }
-}
-</style>
+  
+  .login-card {
+    border-radius: 12px;
+  }
+}</style>

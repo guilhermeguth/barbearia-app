@@ -137,6 +137,15 @@
       }
     }
   }
+  
+  // Melhorias específicas para a página de login
+  .login-page {
+    .q-dialog .q-card {
+      background-color: rgba(30, 30, 30, 0.98) !important;
+      backdrop-filter: blur(20px);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+  }
 }
 
 // Melhorias para o botão de tema
