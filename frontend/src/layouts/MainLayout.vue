@@ -22,7 +22,7 @@
           :icon="$q.dark.isActive ? 'light_mode' : 'dark_mode'"
           aria-label="Alternar tema"
           @click="toggleTheme"
-          class="q-mr-sm"
+          class="q-mr-sm theme-toggle-btn"
         >
           <q-tooltip>{{ $q.dark.isActive ? 'Tema claro' : 'Tema escuro' }}</q-tooltip>
         </q-btn>

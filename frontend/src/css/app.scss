@@ -1,2 +1,46 @@
 // app global css in SCSS form
 
+// Transições suaves para mudança de tema
+* {
+  transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+}
+
+// Melhorias visuais para o tema escuro
+.body--dark {
+  .q-table {
+    .q-table__card {
+      background-color: rgba(255, 255, 255, 0.02);
+    }
+    
+    th {
+      background-color: rgba(255, 255, 255, 0.05) !important;
+    }
+    
+    tr:hover {
+      background-color: rgba(255, 255, 255, 0.05) !important;
+    }
+  }
+  
+  .q-card {
+    background-color: rgba(255, 255, 255, 0.03);
+  }
+  
+  .q-input {
+    .q-field__control {
+      background-color: rgba(255, 255, 255, 0.05);
+    }
+  }
+}
+
+// Melhorias para o botão de tema
+.theme-toggle-btn {
+  .q-btn__content {
+    transition: transform 0.3s ease;
+  }
+  
+  &:hover {
+    .q-btn__content {
+      transform: rotate(180deg);
+    }
+  }
+}
