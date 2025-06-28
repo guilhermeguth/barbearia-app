@@ -108,6 +108,15 @@
               <q-item-label>Relatórios</q-item-label>
             </q-item-section>
           </q-item>
+
+          <q-item to="/configuracoes" clickable v-ripple exact-active-class="bg-primary text-white">
+            <q-item-section avatar>
+              <q-icon name="settings" />
+            </q-item-section>
+            <q-item-section>
+              <q-item-label>Configurações</q-item-label>
+            </q-item-section>
+          </q-item>
         </q-list>
       </div>
 
