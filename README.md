@@ -1,80 +1,167 @@
-# ✂️ Barbearia App
+# 💈 Barbearia App
 
-Aplicativo para gerenciamento de barbearia: cadastre serviços, barbeiros, clientes e gerencie agendamentos de forma simples e eficiente.
+Sistema completo de gerenciamento para barbearias modernas, desenvolvido com tecnologias atuais e interface responsiva.
 
----
+## 🚀 Tecnologias
 
-## 🚀 Tecnologias utilizadas
+### Frontend
+- **Vue 3** - Framework JavaScript progressivo
+- **Quasar Framework** - Framework Vue.js para desenvolvimento multiplataforma
+- **Pinia** - Gerenciamento de estado para Vue
+- **Vue Router** - Roteamento oficial do Vue
+- **Axios** - Cliente HTTP para requisições à API
 
-- **Node.js** – Plataforma JavaScript
-- **TypeScript** – Tipagem estática para JavaScript
-- **Express** – Framework web leve
-- **TypeORM** – ORM para banco de dados
-- **PostgreSQL** – Banco de dados relacional
-- **JWT** – Autenticação baseada em tokens
-- **BCrypt** – Hash de senhas
-- **Faker.js** – Geração de dados falsos para desenvolvimento
-- **Dotenv** – Gerenciamento de variáveis de ambiente
-- **Nodemon** – Reload automático no desenvolvimento
-- **ts-node** – Execução de arquivos `.ts` diretamente
+### Backend
+- **Node.js** - Runtime JavaScript
+- **TypeScript** - Superset tipado do JavaScript
+- **Express** - Framework web minimalista
+- **TypeORM** - ORM para TypeScript e JavaScript
+- **JWT** - Autenticação baseada em tokens
+- **bcrypt** - Criptografia de senhas
 
----
+## 📋 Funcionalidades
 
-## 📁 Estrutura do projeto
+### ✅ Implementadas
+- 🔐 **Autenticação completa** (login/logout com JWT)
+- 📊 **Dashboard responsivo** com métricas em tempo real
+- 🎨 **Interface moderna** com Quasar Framework
+- 🛡️ **Rotas protegidas** com middleware de autenticação
+- 📱 **Design responsivo** para desktop e mobile
+- 💬 **Feedback visual** com notificações elegantes
+- 🔄 **Integração frontend/backend** completa
+
+### 🔄 Em Desenvolvimento
+- 📅 Gerenciamento de agendamentos
+- 👨‍💼 Cadastro e gestão de barbeiros
+- 🛍️ Catálogo de serviços
+- 👥 Gestão de clientes
+- 📈 Relatórios e analytics
+
+## 🏗️ Estrutura do Projeto
 
 ```
 barbearia-app/
-├── backend/
+├── frontend/           # Aplicação Vue.js + Quasar
 │   ├── src/
-│   │   ├── entity/         # Entidades do TypeORM
-│   │   ├── repositories/   # Repositórios customizados
-│   │   ├── seeds/          # Seeds para desenvolvimento
-│   │   ├── routes/         # Rotas da API
-│   │   ├── controllers/    # Lógicas de controle
-│   │   ├── middlewares/    # Middlewares (auth, error, etc.)
-│   │   ├── data-source.ts  # Configuração TypeORM
-│   │   └── index.ts        # Ponto de entrada da aplicação
+│   │   ├── components/ # Componentes reutilizáveis
+│   │   ├── layouts/    # Layouts da aplicação
+│   │   ├── pages/      # Páginas/Views
+│   │   ├── router/     # Configuração de rotas
+│   │   ├── stores/     # Gerenciamento de estado (Pinia)
+│   │   └── boot/       # Plugins e configurações
+│   └── package.json
+├── backend/            # API REST em Node.js + TypeScript
+│   ├── src/
+│   │   ├── controllers/# Controladores da API
+│   │   ├── entities/   # Modelos do banco de dados
+│   │   ├── middlewares/# Middlewares do Express
+│   │   ├── repositories/# Repositórios de dados
+│   │   └── routes.ts   # Definição das rotas
+│   └── package.json
+└── README.md          # Este arquivo
 ```
 
----
+## 🚀 Como Executar
 
-## ⚙️ Pré-requisitos
+### Pré-requisitos
+- Node.js 18+ 
+- npm ou yarn
+- Banco de dados (PostgreSQL recomendado)
 
-- [Node.js](https://nodejs.org/) 18+
-- [PostgreSQL](https://www.postgresql.org/) 12+
-- [NPM](https://www.npmjs.com/) ou [Yarn](https://yarnpkg.com/)
-
----
-
-## 📦 Instalação
-
+### 1. Clone o repositório
 ```bash
-# Clone o repositório
-git clone https://github.com/guilhermeguth/barbearia-app.git
+git clone https://github.com/seu-usuario/barbearia-app.git
+cd barbearia-app
+```
 
-# Acesse a pasta do projeto
-cd barbearia-app/backend
-
-# Instale as dependências
+### 2. Configure o Backend
+```bash
+cd backend
 npm install
 ```
 
----
-
-## 🔐 Variáveis de ambiente
-
-Crie um arquivo `.env` na raiz do `backend/` com o seguinte conteúdo:
-
+Configure as variáveis de ambiente criando um arquivo `.env`:
 ```env
-DATABASE_URL=postgres://usuario:senha@localhost:5432/barbearia
-JWT_SECRET=um_segredo_seguro_aqui
+PORT=3000
+DB_HOST=localhost
+DB_PORT=5432
+DB_USERNAME=seu_usuario
+DB_PASSWORD=sua_senha
+DB_DATABASE=barbearia_db
+JWT_SECRET=seu_jwt_secret_super_seguro
 ```
 
+Execute as migrações e inicie o servidor:
+```bash
+npm run typeorm migration:run
+npm run dev
+```
+
+### 3. Configure o Frontend
+```bash
+cd ../frontend
+npm install
+npm run dev
+```
+
+### 4. Acesse a aplicação
+- **Frontend**: http://localhost:9000
+- **Backend API**: http://localhost:3000
+
+## � Credenciais de Teste
+
+Para testar a aplicação, use as credenciais criadas pelos seeds:
+
+```
+Email: admin@barbearia.com
+Senha: admin123
+```
+
+## 🛠️ Scripts Disponíveis
+
+### Backend
+```bash
+npm run dev          # Modo desenvolvimento
+npm run build        # Build para produção
+npm run start        # Inicia versão de produção
+npm run typeorm      # CLI do TypeORM
+```
+
+### Frontend
+```bash
+npm run dev          # Modo desenvolvimento
+npm run build        # Build para produção
+npm run lint         # Executa linter
+npm run lint:fix     # Corrige problemas do linter
+```
+
+## 🤝 Como Contribuir
+
+1. Faça um fork do projeto
+2. Crie uma branch para sua feature (`git checkout -b feature/MinhaFeature`)
+3. Commit suas mudanças (`git commit -m 'feat: adiciona MinhaFeature'`)
+4. Push para a branch (`git push origin feature/MinhaFeature`)
+5. Abra um Pull Request
+
+### 📝 Padrão de Commits
+
+Utilizamos [Conventional Commits](https://www.conventionalcommits.org/):
+
+- `feat:` Nova funcionalidade
+- `fix:` Correção de bug
+- `docs:` Documentação
+- `style:` Formatação de código
+- `refactor:` Refatoração de código
+- `test:` Testes
+- `chore:` Tarefas de manutenção
+
+## � Licença
+
+Este projeto está sob a licença MIT.
+
 ---
 
-## 🔃 Rodando o projeto
-
-### Iniciar servidor em modo desenvolvimento:
+⭐ Se este projeto te ajudou, considere dar uma estrela no repositório!
 
 ```bash
 npm run dev
