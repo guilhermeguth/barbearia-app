@@ -127,16 +127,15 @@
     <!-- Modal para adicionar/editar serviço -->
     <q-dialog v-model="modalServico" persistent>
       <q-card style="min-width: 400px">
-        <q-card-section class="row items-center q-pb-none">
-          <h6 class="q-ma-none text-weight-bold">
+        <q-card-section class="bg-primary text-white">
+          <div class="text-h6">
+            <q-icon name="edit" class="q-mr-sm" />
             {{ servicoEdicao.id ? 'Editar Serviço' : 'Novo Serviço' }}
-          </h6>
-          <q-space />
-          <q-btn flat round icon="close" @click="fecharModal" />
+          </div>
         </q-card-section>
 
-        <q-form @submit="salvarServico" class="q-gutter-md">
-          <q-card-section>
+        <q-card-section>
+          <q-form @submit="salvarServico" class="q-gutter-md">
             <q-input
               v-model="servicoEdicao.name"
               label="Nome do Serviço *"
@@ -172,19 +171,19 @@
                 val => val > 0 || 'Duração deve ser maior que zero'
               ]"
             />
-          </q-card-section>
 
-          <q-card-actions align="right" class="q-pa-md">
-            <q-btn flat label="Cancelar" @click="fecharModal" />
-            <q-btn
-              color="primary"
-              label="Salvar"
-              type="submit"
-              :loading="salvando"
-              unelevated
-            />
-          </q-card-actions>
-        </q-form>
+            <q-card-actions align="right" class="q-pa-md">
+              <q-btn flat label="Cancelar" @click="fecharModal" />
+              <q-btn
+                color="primary"
+                label="Salvar"
+                type="submit"
+                :loading="salvando"
+                unelevated
+              />
+            </q-card-actions>
+          </q-form>
+        </q-card-section>
       </q-card>
     </q-dialog>
 

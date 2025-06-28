@@ -119,7 +119,7 @@
       <q-card style="min-width: 400px">
         <q-card-section class="bg-primary text-white">
           <div class="text-h6">
-            <q-icon name="person" class="q-mr-sm" />
+            <q-icon name="edit" class="q-mr-sm" />
             {{ editingBarber ? 'Editar Barbeiro' : 'Novo Barbeiro' }}
           </div>
         </q-card-section>

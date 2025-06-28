@@ -144,7 +144,7 @@
       <q-card style="min-width: 500px">
         <q-card-section class="bg-primary text-white">
           <div class="text-h6">
-            <q-icon name="people" class="q-mr-sm" />
+            <q-icon name="edit" class="q-mr-sm" />
             {{ editingClient ? 'Editar Cliente' : 'Novo Cliente' }}
           </div>
         </q-card-section>
@@ -316,7 +316,7 @@
     <!-- Dialog para vincular usuário -->
     <q-dialog v-model="showLinkDialog" persistent>
       <q-card style="min-width: 400px">
-        <q-card-section class="bg-info text-white">
+        <q-card-section class="bg-primary text-white">
           <div class="text-h6">
             <q-icon name="link" class="q-mr-sm" />
             Vincular Cliente a Usuário

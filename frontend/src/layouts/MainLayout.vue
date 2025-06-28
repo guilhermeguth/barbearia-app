@@ -112,7 +112,7 @@
       <!-- User Info Footer -->
       <div class="absolute-bottom">
         <q-separator />
-        <q-item class="bg-grey-1">
+        <q-item class="user-info-item">
           <q-item-section avatar>
             <q-avatar color="primary" text-color="white" size="40px">
               <q-icon name="person" />
@@ -120,8 +120,8 @@
           </q-item-section>
           
           <q-item-section>
-            <q-item-label class="text-weight-medium">{{ authStore.userName }}</q-item-label>
-            <q-item-label caption class="text-grey-7">{{ authStore.user?.email || 'Administrador' }}</q-item-label>
+            <q-item-label class="text-weight-medium user-name">{{ authStore.userName }}</q-item-label>
+            <q-item-label caption class="user-email">{{ authStore.user?.email || 'Administrador' }}</q-item-label>
           </q-item-section>
           
           <q-item-section side>
