@@ -3,9 +3,9 @@
     <!-- Header da página -->
     <div class="row items-center justify-between q-mb-lg">
       <div>
-        <h4 class="q-ma-none text-grey-8">
+        <h4 class="q-ma-none text-primary text-weight-bold">
           <q-icon name="person" class="q-mr-sm" />
-          Barbeiros
+          Gestão de Barbeiros
         </h4>
         <p class="text-grey-6 q-mb-none">Gerencie os profissionais da barbearia</p>
       </div>
