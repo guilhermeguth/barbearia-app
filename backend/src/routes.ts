@@ -5,6 +5,7 @@ import { AuthController } from "./controllers/AuthController";
 import { DashboardController } from "./controllers/DashboardController";
 import { ServiceController } from "./controllers/ServiceController";
 import { CustomerController } from "./controllers/CustomerController";
+import { AppointmentController } from "./controllers/AppointmentController";
 import { authMiddleware } from "./middlewares/authMiddleware";
 
 const routes = Router();
@@ -15,6 +16,7 @@ const authController = new AuthController();
 const dashboardController = new DashboardController();
 const serviceController = new ServiceController();
 const customerController = new CustomerController();
+const appointmentController = new AppointmentController();
 
 routes.post("/user/create", userController.create);
 routes.post("/auth/login", authController.login);
@@ -42,6 +44,16 @@ routes.get("/customers/:id", customerController.getById);
 routes.delete("/customers/:id", customerController.delete);
 routes.post("/customers/link-user", customerController.linkToUser);
 routes.delete("/customers/:id/unlink-user", customerController.unlinkFromUser);
+
+// Rotas de agendamentos
+routes.post("/appointments", appointmentController.create);
+routes.get("/appointments", appointmentController.getAll);
+routes.get("/appointments/:id", appointmentController.getById);
+routes.put("/appointments/:id", appointmentController.update);
+routes.delete("/appointments/:id", appointmentController.delete);
+routes.put("/appointments/:id/cancel", appointmentController.cancel);
+routes.get("/appointments/date/:date", appointmentController.getByDate);
+routes.get("/appointments/available-slots/:barberId/:date", appointmentController.getAvailableSlots);
 
 routes.post("/auth/logout", authController.logout);
 routes.get("/auth/authenticate", authController.authenticate);
