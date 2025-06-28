@@ -37,7 +37,14 @@ export class ServiceController {
   async getAll(_req: Request, res: Response) {
     try {
       const services = await serviceRepository.find();
-      res.status(200).json(services);
+      
+      // Converter price de string para number
+      const servicesWithNumericPrice = services.map(service => ({
+        ...service,
+        price: typeof service.price === 'string' ? parseFloat(service.price) : service.price
+      }));
+      
+      res.status(200).json(servicesWithNumericPrice);
     } catch (error) {
       console.error('Erro ao buscar serviços:', error);
       res.status(500).json({ 
