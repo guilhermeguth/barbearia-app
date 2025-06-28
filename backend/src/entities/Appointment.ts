@@ -1,10 +1,10 @@
 import {
   Column,
+  CreateDateColumn,
   Entity,
   JoinColumn,
   ManyToOne,
   PrimaryGeneratedColumn,
-  CreateDateColumn,
   UpdateDateColumn,
 } from "typeorm";
 import { Customer } from "./Customer";
@@ -12,10 +12,10 @@ import { Barber } from "./Barber";
 import { Service } from "./Service";
 
 export enum AppointmentStatus {
-  SCHEDULED = "scheduled",     // Agendado
+  SCHEDULED = "scheduled", // Agendado
   IN_PROGRESS = "in_progress", // Em andamento
-  COMPLETED = "completed",     // Concluído
-  CANCELLED = "cancelled"      // Cancelado
+  COMPLETED = "completed", // Concluído
+  CANCELLED = "cancelled", // Cancelado
 }
 
 @Entity({ name: "appointments" })
@@ -23,7 +23,9 @@ export class Appointment {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @ManyToOne(() => Customer, (customer) => customer.appointments, { eager: true })
+  @ManyToOne(() => Customer, (customer) => customer.appointments, {
+    eager: true,
+  })
   @JoinColumn({ name: "customer_id" })
   customer: Customer;
 
@@ -47,10 +49,10 @@ export class Appointment {
   @Column({ type: "timestamp", name: "scheduled_date_time" })
   scheduledDateTime: Date;
 
-  @Column({ 
-    type: "enum", 
-    enum: AppointmentStatus, 
-    default: AppointmentStatus.SCHEDULED 
+  @Column({
+    type: "enum",
+    enum: AppointmentStatus,
+    default: AppointmentStatus.SCHEDULED,
   })
   status: AppointmentStatus;
 

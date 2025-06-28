@@ -9,15 +9,15 @@ AppDataSource.initialize().then(() => {
   const app = express();
 
   app.use(cors({
-    origin: function(origin, callback) {
+    origin: function (origin, callback) {
       // Permitir requisições sem origin (ex: mobile apps, postman)
       if (!origin) return callback(null, true);
-      
+
       // Permitir qualquer localhost durante desenvolvimento
-      if (origin.includes('localhost') || origin.includes('127.0.0.1')) {
+      if (origin.includes("localhost") || origin.includes("127.0.0.1")) {
         return callback(null, true);
       }
-      
+
       // Em produção, você deve especificar domínios específicos
       callback(null, true);
     },

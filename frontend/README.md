@@ -1,6 +1,7 @@
 # 🎨 Frontend - Barbearia App
 
-Interface moderna e responsiva desenvolvida com Vue 3 e Quasar Framework para o sistema de gerenciamento de barbearia.
+Interface moderna e responsiva desenvolvida com Vue 3 e Quasar Framework para o
+sistema de gerenciamento de barbearia.
 
 ## 🚀 Tecnologias
 
@@ -14,6 +15,7 @@ Interface moderna e responsiva desenvolvida com Vue 3 e Quasar Framework para o 
 ## 📱 Funcionalidades
 
 ### ✅ Implementadas
+
 - 🔐 **Sistema de autenticação** com JWT
 - 📊 **Dashboard responsivo** com cards de métricas
 - 🎨 **Interface moderna** com Material Design
@@ -23,6 +25,7 @@ Interface moderna e responsiva desenvolvida com Vue 3 e Quasar Framework para o 
 - 🌙 **Loading states** para melhor UX
 
 ### 🔄 Em Desenvolvimento
+
 - 📅 Interface de agendamentos
 - 👨‍💼 Gestão de barbeiros
 - 🛍️ Catálogo de serviços
@@ -84,6 +87,7 @@ npm run lint:fix
 ## ⚙️ Configuração
 
 ### Variáveis de Ambiente
+
 Crie um arquivo `.env` na raiz do frontend:
 
 ```env
@@ -100,61 +104,64 @@ VITE_APP_VERSION=1.0.0
 ```javascript
 const routes = [
   {
-    path: '/login',
+    path: "/login",
     component: LoginPage,
-    beforeEnter: requireGuest  // Apenas usuários não autenticados
+    beforeEnter: requireGuest, // Apenas usuários não autenticados
   },
   {
-    path: '/',
+    path: "/",
     component: MainLayout,
-    beforeEnter: requireAuth,  // Apenas usuários autenticados
+    beforeEnter: requireAuth, // Apenas usuários autenticados
     children: [
-      { path: '', redirect: 'dashboard' },
-      { path: 'dashboard', component: IndexPage },
-      { path: 'agendamentos', component: AgendamentosPage },
-      { path: 'barbeiros', component: BarbeirosPage },
-      { path: 'servicos', component: ServicosPage },
-      { path: 'clientes', component: ClientesPage },
-      { path: 'relatorios', component: RelatoriosPage }
-    ]
-  }
-]
+      { path: "", redirect: "dashboard" },
+      { path: "dashboard", component: IndexPage },
+      { path: "agendamentos", component: AgendamentosPage },
+      { path: "barbeiros", component: BarbeirosPage },
+      { path: "servicos", component: ServicosPage },
+      { path: "clientes", component: ClientesPage },
+      { path: "relatorios", component: RelatoriosPage },
+    ],
+  },
+];
 ```
 
 ## 🔐 Sistema de Autenticação
 
 ### Store de Autenticação (Pinia)
+
 ```javascript
-export const useAuthStore = defineStore('auth', {
+export const useAuthStore = defineStore("auth", {
   state: () => ({
     user: null,
-    token: localStorage.getItem('token'),
-    isAuthenticated: false
+    token: localStorage.getItem("token"),
+    isAuthenticated: false,
   }),
-  
+
   actions: {
     async login(credentials) {
       // Implementação do login
     },
-    
+
     async logout() {
       // Implementação do logout
     },
-    
+
     async fetchUser() {
       // Buscar dados do usuário autenticado
-    }
-  }
-})
+    },
+  },
+});
 ```
 
 ### Middleware de Rotas
+
 - **requireAuth**: Redireciona para login se não autenticado
 - **requireGuest**: Redireciona para dashboard se já autenticado
 
 ## 💅 Estilização
 
 ### Design System
+
 - **Cores primárias**: Definidas em `quasar.variables.scss`
 - **Componentes**: Baseados no Material Design (Quasar)
 - **Responsividade**: CSS Grid e Flexbox
@@ -163,6 +170,7 @@ export const useAuthStore = defineStore('auth', {
 ## 📱 Responsividade
 
 ### Breakpoints
+
 - **xs**: < 600px (mobile)
 - **sm**: 600px - 960px (tablet)
 - **md**: 960px - 1280px (desktop pequeno)
@@ -172,6 +180,7 @@ export const useAuthStore = defineStore('auth', {
 ## 🔧 Desenvolvimento
 
 ### Estrutura de Componentes
+
 ```vue
 <template>
   <!-- Template clean e semântico -->
@@ -190,4 +199,5 @@ import { useQuasar } from 'quasar'
 
 ---
 
-💡 **Dica**: Para uma experiência completa, certifique-se de que o backend esteja rodando na porta 3000.
+💡 **Dica**: Para uma experiência completa, certifique-se de que o backend
+esteja rodando na porta 3000.

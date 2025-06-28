@@ -39,7 +39,10 @@ routes.delete("/services/:id", serviceController.delete);
 // Rotas de clientes
 routes.post("/customers", customerController.persist);
 routes.get("/customers", customerController.getAll);
-routes.get("/customers/search-unlinked-users", customerController.searchUnlinkedUsers);
+routes.get(
+  "/customers/search-unlinked-users",
+  customerController.searchUnlinkedUsers,
+);
 routes.get("/customers/:id", customerController.getById);
 routes.delete("/customers/:id", customerController.delete);
 routes.post("/customers/link-user", customerController.linkToUser);
@@ -53,7 +56,10 @@ routes.put("/appointments/:id", appointmentController.update);
 routes.delete("/appointments/:id", appointmentController.delete);
 routes.put("/appointments/:id/cancel", appointmentController.cancel);
 routes.get("/appointments/date/:date", appointmentController.getByDate);
-routes.get("/appointments/available-slots/:barberId/:date", appointmentController.getAvailableSlots);
+routes.get(
+  "/appointments/available-slots/:barberId/:date",
+  appointmentController.getAvailableSlots,
+);
 
 routes.post("/auth/logout", authController.logout);
 routes.get("/auth/authenticate", authController.authenticate);

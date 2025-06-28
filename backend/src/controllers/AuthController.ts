@@ -51,15 +51,15 @@ export class AuthController {
   }
 
   logout(req: Request, res: Response) {
-    console.log('Logout solicitado para usuário:', req.user?.id);
-    
+    console.log("Logout solicitado para usuário:", req.user?.id);
+
     // Em uma implementação mais robusta, você poderia:
     // - Adicionar o token a uma blacklist
     // - Invalidar refresh tokens
     // - Limpar sessões ativas
-    
-    res.status(200).json({ 
-      message: "Usuário deslogado com sucesso" 
+
+    res.status(200).json({
+      message: "Usuário deslogado com sucesso",
     });
   }
 }

@@ -1,7 +1,7 @@
 import { Request, Response } from "express";
 import { barberRepository } from "../repositories/barberRepository";
 import { userRepository } from "../repositories/userRepository";
-import { NotFoundError, BadRequestError } from "../helpers/api-errors";
+import { BadRequestError, NotFoundError } from "../helpers/api-errors";
 import { UserRole } from "../entities/User";
 import bcrypt from "bcrypt";
 
@@ -10,10 +10,10 @@ export class BarberController {
     const post = req.body;
 
     let barber = post?.id
-      ? await barberRepository.findOne({ 
-          where: { id: post.id },
-          relations: ['user']
-        })
+      ? await barberRepository.findOne({
+        where: { id: post.id },
+        relations: ["user"],
+      })
       : null;
 
     if (!post?.name || !post?.email || !post?.phone) {
@@ -27,7 +27,9 @@ export class BarberController {
       }
 
       // Verificar se já existe usuário com este email
-      const existingUser = await userRepository.findOneBy({ email: post.email });
+      const existingUser = await userRepository.findOneBy({
+        email: post.email,
+      });
       if (existingUser) {
         throw new BadRequestError("Já existe um usuário com este email");
       }
@@ -39,9 +41,9 @@ export class BarberController {
         email: post.email,
         password: hashedPassword,
         role: UserRole.ADMIN,
-        createdAt: new Date()
+        createdAt: new Date(),
       });
-      
+
       const savedUser = await userRepository.save(user);
 
       // Criar barbeiro
@@ -57,7 +59,7 @@ export class BarberController {
       // Atualizar barbeiro existente
       barber.name = post.name;
       barber.phone = post.phone;
-      
+
       // Atualizar também o usuário
       if (barber.user) {
         barber.user.name = post.name;
@@ -76,25 +78,25 @@ export class BarberController {
         name: barber.name,
         email: barber.email,
         phone: barber.phone,
-        createdAt: barber.createdAt
+        createdAt: barber.createdAt,
       },
     });
   }
 
   async getAll(_req: Request, res: Response) {
     const barbers = await barberRepository.find({
-      relations: ['user'],
-      order: { name: 'ASC' }
+      relations: ["user"],
+      order: { name: "ASC" },
     });
 
     // Não retornar dados sensíveis do usuário
-    const barbearsResponse = barbers.map(barber => ({
+    const barbearsResponse = barbers.map((barber) => ({
       id: barber.id,
       name: barber.name,
       email: barber.email,
       phone: barber.phone,
       createdAt: barber.createdAt,
-      userId: barber.userId
+      userId: barber.userId,
     }));
 
     res.status(200).json(barbearsResponse);
@@ -105,7 +107,7 @@ export class BarberController {
 
     const barber = await barberRepository.findOne({
       where: { id: Number(id) },
-      relations: ['user']
+      relations: ["user"],
     });
 
     if (!barber) {
@@ -116,7 +118,7 @@ export class BarberController {
     await barberRepository.remove(barber);
 
     res.status(200).json({
-      message: "Barbeiro excluído com sucesso"
+      message: "Barbeiro excluído com sucesso",
     });
   }
 }

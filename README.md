@@ -1,10 +1,12 @@
 # 💈 Barbearia App
 
-Sistema completo de gerenciamento para barbearias modernas, desenvolvido com tecnologias atuais e interface responsiva.
+Sistema completo de gerenciamento para barbearias modernas, desenvolvido com
+tecnologias atuais e interface responsiva.
 
 ## 🚀 Tecnologias
 
 ### Frontend
+
 - **Vue 3** - Framework JavaScript progressivo
 - **Quasar Framework** - Framework Vue.js para desenvolvimento multiplataforma
 - **Pinia** - Gerenciamento de estado para Vue
@@ -12,6 +14,7 @@ Sistema completo de gerenciamento para barbearias modernas, desenvolvido com tec
 - **Axios** - Cliente HTTP para requisições à API
 
 ### Backend
+
 - **Node.js** - Runtime JavaScript
 - **TypeScript** - Superset tipado do JavaScript
 - **Express** - Framework web minimalista
@@ -22,6 +25,7 @@ Sistema completo de gerenciamento para barbearias modernas, desenvolvido com tec
 ## 📋 Funcionalidades
 
 ### ✅ Implementadas
+
 - 🔐 **Autenticação completa** (login/logout com JWT)
 - 📊 **Dashboard responsivo** com métricas em tempo real
 - 🎨 **Interface moderna** com Quasar Framework
@@ -31,6 +35,7 @@ Sistema completo de gerenciamento para barbearias modernas, desenvolvido com tec
 - 🔄 **Integração frontend/backend** completa
 
 ### 🔄 Em Desenvolvimento
+
 - 📅 Gerenciamento de agendamentos
 - 👨‍💼 Cadastro e gestão de barbeiros
 - 🛍️ Catálogo de serviços
@@ -64,23 +69,27 @@ barbearia-app/
 ## 🚀 Como Executar
 
 ### Pré-requisitos
-- Node.js 18+ 
+
+- Node.js 18+
 - npm ou yarn
 - Banco de dados (PostgreSQL recomendado)
 
 ### 1. Clone o repositório
+
 ```bash
 git clone https://github.com/seu-usuario/barbearia-app.git
 cd barbearia-app
 ```
 
 ### 2. Configure o Backend
+
 ```bash
 cd backend
 npm install
 ```
 
 Configure as variáveis de ambiente criando um arquivo `.env`:
+
 ```env
 PORT=3000
 DB_HOST=localhost
@@ -92,12 +101,14 @@ JWT_SECRET=seu_jwt_secret_super_seguro
 ```
 
 Execute as migrações e inicie o servidor:
+
 ```bash
 npm run typeorm migration:run
 npm run dev
 ```
 
 ### 3. Configure o Frontend
+
 ```bash
 cd ../frontend
 npm install
@@ -105,6 +116,7 @@ npm run dev
 ```
 
 ### 4. Acesse a aplicação
+
 - **Frontend**: http://localhost:9000
 - **Backend API**: http://localhost:3000
 
@@ -120,6 +132,7 @@ Senha: admin123
 ## 🛠️ Scripts Disponíveis
 
 ### Backend
+
 ```bash
 npm run dev          # Modo desenvolvimento
 npm run build        # Build para produção
@@ -128,6 +141,7 @@ npm run typeorm      # CLI do TypeORM
 ```
 
 ### Frontend
+
 ```bash
 npm run dev          # Modo desenvolvimento
 npm run build        # Build para produção
@@ -224,4 +238,5 @@ Feito com 💈 por [@guilhermeguth](https://github.com/guilhermeguth)
 
 ## 📃 Licença
 
-Este projeto está sob a licença MIT. Veja o arquivo `LICENSE` para mais detalhes.
+Este projeto está sob a licença MIT. Veja o arquivo `LICENSE` para mais
+detalhes.

@@ -1,5 +1,5 @@
 import AppDataSource from "../data-source";
-// import { createAppointments } from "./createAppointments";
+import { createAppointments } from "./createAppointments";
 import { createBarbers } from "./createBarbers";
 import { createServices } from "./createServices";
 import { createUsers } from "./createUsers";
@@ -14,7 +14,7 @@ async function seed() {
   await createBarbers();
   await createServices();
   await createCustomers();
-  // await createAppointments(); // Temporariamente comentado até resolver o TypeScript
+  await createAppointments(); // Agendamentos criados por último, após ter dados relacionados
 
   await AppDataSource.destroy();
 

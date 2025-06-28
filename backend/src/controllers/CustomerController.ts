@@ -1,7 +1,7 @@
 import { Request, Response } from "express";
 import { customerRepository } from "../repositories/customerRepository";
 import { userRepository } from "../repositories/userRepository";
-import { NotFoundError, BadRequestError } from "../helpers/api-errors";
+import { BadRequestError, NotFoundError } from "../helpers/api-errors";
 import { UserRole } from "../entities/User";
 import bcrypt from "bcrypt";
 
@@ -10,10 +10,10 @@ export class CustomerController {
     const data = req.body;
 
     let customer = data?.id
-      ? await customerRepository.findOne({ 
-          where: { id: data.id },
-          relations: ['user']
-        })
+      ? await customerRepository.findOne({
+        where: { id: data.id },
+        relations: ["user"],
+      })
       : null;
 
     if (!customer) {
@@ -35,7 +35,9 @@ export class CustomerController {
     // Se foi solicitado criar usuário automaticamente
     if (data.createUser && data.password && data.email) {
       // Verificar se já existe usuário com este email
-      const existingUser = await userRepository.findOneBy({ email: data.email });
+      const existingUser = await userRepository.findOneBy({
+        email: data.email,
+      });
       if (existingUser) {
         throw new BadRequestError("Já existe um usuário com este email");
       }
@@ -47,14 +49,13 @@ export class CustomerController {
         email: data.email,
         password: hashedPassword,
         role: UserRole.CUSTOMER,
-        createdAt: new Date()
+        createdAt: new Date(),
       });
-      
+
       const savedUser = await userRepository.save(user);
       customer.user = savedUser;
       customer.userId = savedUser.id;
-    }
-    // Se foi fornecido userId, vincular com usuário existente
+    } // Se foi fornecido userId, vincular com usuário existente
     else if (data.userId) {
       const user = await userRepository.findOneBy({ id: data.userId });
       if (!user) {
@@ -80,15 +81,15 @@ export class CustomerController {
   async getAll(_req: Request, res: Response) {
     try {
       const customers = await customerRepository.find({
-        relations: ['user'],
-        order: { name: 'ASC' }
+        relations: ["user"],
+        order: { name: "ASC" },
       });
       res.status(200).json(customers);
     } catch (error) {
-      console.error('Erro ao buscar clientes:', error);
-      res.status(500).json({ 
-        message: 'Erro ao buscar clientes',
-        error: error instanceof Error ? error.message : 'Erro desconhecido'
+      console.error("Erro ao buscar clientes:", error);
+      res.status(500).json({
+        message: "Erro ao buscar clientes",
+        error: error instanceof Error ? error.message : "Erro desconhecido",
       });
     }
   }
@@ -98,7 +99,7 @@ export class CustomerController {
 
     const customer = await customerRepository.findOne({
       where: { id: Number(id) },
-      relations: ['user', 'appointments']
+      relations: ["user", "appointments"],
     });
 
     if (!customer) {
@@ -120,7 +121,7 @@ export class CustomerController {
     await customerRepository.remove(customer);
 
     res.status(200).json({
-      message: "Cliente excluído com sucesso"
+      message: "Cliente excluído com sucesso",
     });
   }
 
@@ -128,13 +129,15 @@ export class CustomerController {
     const { customerId, userId } = req.body;
 
     if (!customerId || !userId) {
-      throw new BadRequestError("ID do cliente e ID do usuário são obrigatórios");
+      throw new BadRequestError(
+        "ID do cliente e ID do usuário são obrigatórios",
+      );
     }
 
     // Verificar se o cliente existe e não possui usuário vinculado
     const customer = await customerRepository.findOne({
       where: { id: customerId },
-      relations: ['user']
+      relations: ["user"],
     });
 
     if (!customer) {
@@ -157,7 +160,7 @@ export class CustomerController {
 
     // Verificar se o usuário já está vinculado a outro cliente
     const existingCustomer = await customerRepository.findOne({
-      where: { userId: userId }
+      where: { userId: userId },
     });
 
     if (existingCustomer) {
@@ -171,7 +174,7 @@ export class CustomerController {
 
     res.status(200).json({
       message: "Cliente vinculado ao usuário com sucesso",
-      customer
+      customer,
     });
   }
 
@@ -180,7 +183,7 @@ export class CustomerController {
 
     const customer = await customerRepository.findOne({
       where: { id: Number(id) },
-      relations: ['user']
+      relations: ["user"],
     });
 
     if (!customer) {
@@ -198,47 +201,51 @@ export class CustomerController {
 
     res.status(200).json({
       message: "Cliente desvinculado do usuário com sucesso",
-      customer
+      customer,
     });
   }
 
   async searchUnlinkedUsers(req: Request, res: Response) {
     const { email } = req.query;
 
-    if (!email || typeof email !== 'string') {
+    if (!email || typeof email !== "string") {
       throw new BadRequestError("Email é obrigatório para a busca");
     }
 
     try {
       // Buscar todos os usuários com role customer que correspondem ao email
       const users = await userRepository
-        .createQueryBuilder('user')
-        .where('user.role = :role', { role: UserRole.CUSTOMER })
-        .andWhere('user.email LIKE :email', { email: `%${email}%` })
+        .createQueryBuilder("user")
+        .where("user.role = :role", { role: UserRole.CUSTOMER })
+        .andWhere("user.email LIKE :email", { email: `%${email}%` })
         .getMany();
 
       // Buscar todos os clientes que têm usuário vinculado
       const linkedCustomers = await customerRepository
-        .createQueryBuilder('customer')
-        .where('customer.userId IS NOT NULL')
+        .createQueryBuilder("customer")
+        .where("customer.userId IS NOT NULL")
         .getMany();
 
-      const linkedUserIds = linkedCustomers.map(c => c.userId).filter(id => id !== null);
+      const linkedUserIds = linkedCustomers.map((c) => c.userId).filter((id) =>
+        id !== null
+      );
 
       // Filtrar usuários que não estão vinculados
-      const unlinkedUsers = users.filter(user => !linkedUserIds.includes(user.id));
+      const unlinkedUsers = users.filter((user) =>
+        !linkedUserIds.includes(user.id)
+      );
 
       // Retornar apenas os campos necessários
-      const result = unlinkedUsers.map(user => ({
+      const result = unlinkedUsers.map((user) => ({
         id: user.id,
         name: user.name,
         email: user.email,
-        createdAt: user.createdAt
+        createdAt: user.createdAt,
       }));
 
       res.status(200).json(result);
     } catch (error) {
-      console.error('Erro ao buscar usuários não vinculados:', error);
+      console.error("Erro ao buscar usuários não vinculados:", error);
       throw new BadRequestError("Erro ao buscar usuários");
     }
   }

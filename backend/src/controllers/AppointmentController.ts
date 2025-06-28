@@ -11,7 +11,7 @@ export class AppointmentController {
   async getAll(req: Request, res: Response) {
     try {
       const { date, barberId, customerId, status } = req.query;
-      
+
       let query = appointmentRepository
         .createQueryBuilder("appointment")
         .leftJoinAndSelect("appointment.customer", "customer")
@@ -21,15 +21,21 @@ export class AppointmentController {
 
       // Filtros opcionais
       if (date) {
-        query = query.andWhere("DATE(appointment.scheduledDateTime) = :date", { date });
+        query = query.andWhere("DATE(appointment.scheduledDateTime) = :date", {
+          date,
+        });
       }
 
       if (barberId) {
-        query = query.andWhere("appointment.barberId = :barberId", { barberId });
+        query = query.andWhere("appointment.barberId = :barberId", {
+          barberId,
+        });
       }
 
       if (customerId) {
-        query = query.andWhere("appointment.customerId = :customerId", { customerId });
+        query = query.andWhere("appointment.customerId = :customerId", {
+          customerId,
+        });
       }
 
       if (status) {
@@ -39,21 +45,23 @@ export class AppointmentController {
       const appointments = await query.getMany();
 
       // Converter preços de string para número
-      const appointmentsWithNumberPrices = appointments.map(appointment => ({
+      const appointmentsWithNumberPrices = appointments.map((appointment) => ({
         ...appointment,
         totalPrice: parseFloat(appointment.totalPrice as any) || 0,
-        service: appointment.service ? {
-          ...appointment.service,
-          price: parseFloat(appointment.service.price as any) || 0
-        } : null
+        service: appointment.service
+          ? {
+            ...appointment.service,
+            price: parseFloat(appointment.service.price as any) || 0,
+          }
+          : null,
       }));
 
       res.status(200).json(appointmentsWithNumberPrices);
     } catch (error) {
       console.error("Erro ao buscar agendamentos:", error);
-      res.status(500).json({ 
-        message: "Erro interno do servidor", 
-        error: error instanceof Error ? error.message : String(error)
+      res.status(500).json({
+        message: "Erro interno do servidor",
+        error: error instanceof Error ? error.message : String(error),
       });
     }
   }
@@ -65,7 +73,7 @@ export class AppointmentController {
 
       const appointment = await appointmentRepository.findOne({
         where: { id: parseInt(id) },
-        relations: ["customer", "barber", "service"]
+        relations: ["customer", "barber", "service"],
       });
 
       if (!appointment) {
@@ -76,16 +84,18 @@ export class AppointmentController {
       const appointmentWithNumberPrices = {
         ...appointment,
         totalPrice: parseFloat(appointment.totalPrice as any) || 0,
-        service: appointment.service ? {
-          ...appointment.service,
-          price: parseFloat(appointment.service.price as any) || 0
-        } : null
+        service: appointment.service
+          ? {
+            ...appointment.service,
+            price: parseFloat(appointment.service.price as any) || 0,
+          }
+          : null,
       };
 
       res.status(200).json(appointmentWithNumberPrices);
     } catch (error) {
       console.error("Erro ao buscar agendamento:", error);
-      
+
       if (error instanceof NotFoundError) {
         res.status(404).json({ message: error.message });
       } else {
@@ -97,11 +107,23 @@ export class AppointmentController {
   // Criar novo agendamento
   async create(req: Request, res: Response) {
     try {
-      const { customerId, barberId, serviceIds, appointmentDate, startTime, notes } = req.body;
+      const {
+        customerId,
+        barberId,
+        serviceIds,
+        appointmentDate,
+        startTime,
+        notes,
+      } = req.body;
 
       // Validações
-      if (!customerId || !barberId || (!serviceIds || serviceIds.length === 0) || !appointmentDate || !startTime) {
-        throw new BadRequestError("Todos os campos obrigatórios devem ser preenchidos");
+      if (
+        !customerId || !barberId || (!serviceIds || serviceIds.length === 0) ||
+        !appointmentDate || !startTime
+      ) {
+        throw new BadRequestError(
+          "Todos os campos obrigatórios devem ser preenchidos",
+        );
       }
 
       // Verificar se customer existe
@@ -136,8 +158,8 @@ export class AppointmentController {
         where: {
           barberId,
           scheduledDateTime,
-          status: AppointmentStatus.SCHEDULED
-        }
+          status: AppointmentStatus.SCHEDULED,
+        },
       });
 
       if (existingAppointment) {
@@ -153,7 +175,7 @@ export class AppointmentController {
         scheduledDateTime,
         totalPrice,
         notes: notes || null,
-        status: AppointmentStatus.SCHEDULED
+        status: AppointmentStatus.SCHEDULED,
       });
 
       const savedAppointment = await appointmentRepository.save(newAppointment);
@@ -161,16 +183,16 @@ export class AppointmentController {
       // Buscar o agendamento completo com relacionamentos
       const appointmentWithRelations = await appointmentRepository.findOne({
         where: { id: savedAppointment.id },
-        relations: ["customer", "barber", "service"]
+        relations: ["customer", "barber", "service"],
       });
 
       res.status(201).json({
         message: "Agendamento criado com sucesso",
-        appointment: appointmentWithRelations
+        appointment: appointmentWithRelations,
       });
     } catch (error) {
       console.error("Erro ao criar agendamento:", error);
-      
+
       if (error instanceof BadRequestError || error instanceof NotFoundError) {
         res.status(400).json({ message: error.message });
       } else {
@@ -183,11 +205,19 @@ export class AppointmentController {
   async update(req: Request, res: Response) {
     try {
       const { id } = req.params;
-      const { customerId, barberId, serviceIds, appointmentDate, startTime, notes, status } = req.body;
+      const {
+        customerId,
+        barberId,
+        serviceIds,
+        appointmentDate,
+        startTime,
+        notes,
+        status,
+      } = req.body;
 
       const appointment = await appointmentRepository.findOne({
         where: { id: parseInt(id) },
-        relations: ["customer", "barber", "service"]
+        relations: ["customer", "barber", "service"],
       });
 
       if (!appointment) {
@@ -213,7 +243,9 @@ export class AppointmentController {
 
       if (serviceIds && serviceIds.length > 0) {
         // Verificar se o serviço existe e atualizar preço
-        const service = await serviceRepository.findOneBy({ id: serviceIds[0] });
+        const service = await serviceRepository.findOneBy({
+          id: serviceIds[0],
+        });
         if (!service) {
           throw new NotFoundError("Serviço não encontrado");
         }
@@ -223,18 +255,25 @@ export class AppointmentController {
 
       // Se estiver mudando a data/hora, verificar disponibilidade
       if (appointmentDate && startTime) {
-        const newScheduledDateTime = new Date(`${appointmentDate}T${startTime}:00`);
-        
-        if (newScheduledDateTime.getTime() !== appointment.scheduledDateTime.getTime()) {
+        const newScheduledDateTime = new Date(
+          `${appointmentDate}T${startTime}:00`,
+        );
+
+        if (
+          newScheduledDateTime.getTime() !==
+            appointment.scheduledDateTime.getTime()
+        ) {
           const existingAppointment = await appointmentRepository.findOne({
             where: {
               barberId: appointment.barberId,
               scheduledDateTime: newScheduledDateTime,
-              status: AppointmentStatus.SCHEDULED
-            }
+              status: AppointmentStatus.SCHEDULED,
+            },
           });
 
-          if (existingAppointment && existingAppointment.id !== appointment.id) {
+          if (
+            existingAppointment && existingAppointment.id !== appointment.id
+          ) {
             throw new BadRequestError("Horário já ocupado para este barbeiro");
           }
 
@@ -248,11 +287,15 @@ export class AppointmentController {
 
       if (status) {
         appointment.status = status;
-        
+
         // Atualizar timestamps baseado no status
-        if (status === AppointmentStatus.IN_PROGRESS && !appointment.startedAt) {
+        if (
+          status === AppointmentStatus.IN_PROGRESS && !appointment.startedAt
+        ) {
           appointment.startedAt = new Date();
-        } else if (status === AppointmentStatus.COMPLETED && !appointment.completedAt) {
+        } else if (
+          status === AppointmentStatus.COMPLETED && !appointment.completedAt
+        ) {
           appointment.completedAt = new Date();
         }
       }
@@ -262,16 +305,16 @@ export class AppointmentController {
       // Buscar o agendamento atualizado com relacionamentos
       const appointmentWithRelations = await appointmentRepository.findOne({
         where: { id: updatedAppointment.id },
-        relations: ["customer", "barber", "service"]
+        relations: ["customer", "barber", "service"],
       });
 
       res.status(200).json({
         message: "Agendamento atualizado com sucesso",
-        appointment: appointmentWithRelations
+        appointment: appointmentWithRelations,
       });
     } catch (error) {
       console.error("Erro ao atualizar agendamento:", error);
-      
+
       if (error instanceof BadRequestError || error instanceof NotFoundError) {
         res.status(400).json({ message: error.message });
       } else {
@@ -287,7 +330,7 @@ export class AppointmentController {
 
       const appointment = await appointmentRepository.findOne({
         where: { id: parseInt(id) },
-        relations: ["customer", "barber", "service"]
+        relations: ["customer", "barber", "service"],
       });
 
       if (!appointment) {
@@ -295,19 +338,23 @@ export class AppointmentController {
       }
 
       if (appointment.status === AppointmentStatus.COMPLETED) {
-        throw new BadRequestError("Não é possível cancelar um agendamento já concluído");
+        throw new BadRequestError(
+          "Não é possível cancelar um agendamento já concluído",
+        );
       }
 
       appointment.status = AppointmentStatus.CANCELLED;
-      const cancelledAppointment = await appointmentRepository.save(appointment);
+      const cancelledAppointment = await appointmentRepository.save(
+        appointment,
+      );
 
       res.status(200).json({
         message: "Agendamento cancelado com sucesso",
-        appointment: cancelledAppointment
+        appointment: cancelledAppointment,
       });
     } catch (error) {
       console.error("Erro ao cancelar agendamento:", error);
-      
+
       if (error instanceof BadRequestError || error instanceof NotFoundError) {
         res.status(400).json({ message: error.message });
       } else {
@@ -321,7 +368,9 @@ export class AppointmentController {
     try {
       const { id } = req.params;
 
-      const appointment = await appointmentRepository.findOneBy({ id: parseInt(id) });
+      const appointment = await appointmentRepository.findOneBy({
+        id: parseInt(id),
+      });
 
       if (!appointment) {
         throw new NotFoundError("Agendamento não encontrado");
@@ -332,7 +381,7 @@ export class AppointmentController {
       res.status(200).json({ message: "Agendamento excluído com sucesso" });
     } catch (error) {
       console.error("Erro ao excluir agendamento:", error);
-      
+
       if (error instanceof NotFoundError) {
         res.status(404).json({ message: error.message });
       } else {
@@ -356,13 +405,15 @@ export class AppointmentController {
         .getMany();
 
       // Converter preços de string para número
-      const appointmentsWithNumberPrices = appointments.map(appointment => ({
+      const appointmentsWithNumberPrices = appointments.map((appointment) => ({
         ...appointment,
         totalPrice: parseFloat(appointment.totalPrice as any) || 0,
-        service: appointment.service ? {
-          ...appointment.service,
-          price: parseFloat(appointment.service.price as any) || 0
-        } : null
+        service: appointment.service
+          ? {
+            ...appointment.service,
+            price: parseFloat(appointment.service.price as any) || 0,
+          }
+          : null,
       }));
 
       res.status(200).json(appointmentsWithNumberPrices);
@@ -387,24 +438,31 @@ export class AppointmentController {
         .createQueryBuilder("appointment")
         .where("appointment.barberId = :barberId", { barberId })
         .andWhere("DATE(appointment.scheduledDateTime) = :date", { date })
-        .andWhere("appointment.status IN (:...statuses)", { 
-          statuses: [AppointmentStatus.SCHEDULED, AppointmentStatus.IN_PROGRESS] 
+        .andWhere("appointment.status IN (:...statuses)", {
+          statuses: [
+            AppointmentStatus.SCHEDULED,
+            AppointmentStatus.IN_PROGRESS,
+          ],
         })
         .getMany();
 
       // Gerar todos os slots possíveis
       const allSlots = [];
       for (let hour = startHour; hour < endHour; hour++) {
-        allSlots.push(`${hour.toString().padStart(2, '0')}:00`);
+        allSlots.push(`${hour.toString().padStart(2, "0")}:00`);
       }
 
       // Remover slots ocupados
-      const occupiedSlots = existingAppointments.map(appointment => {
+      const occupiedSlots = existingAppointments.map((appointment) => {
         const time = new Date(appointment.scheduledDateTime);
-        return `${time.getHours().toString().padStart(2, '0')}:${time.getMinutes().toString().padStart(2, '0')}`;
+        return `${time.getHours().toString().padStart(2, "0")}:${
+          time.getMinutes().toString().padStart(2, "0")
+        }`;
       });
 
-      const availableSlots = allSlots.filter(slot => !occupiedSlots.includes(slot));
+      const availableSlots = allSlots.filter((slot) =>
+        !occupiedSlots.includes(slot)
+      );
 
       res.status(200).json({ availableSlots });
     } catch (error) {

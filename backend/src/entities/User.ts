@@ -4,7 +4,7 @@ import { Barber } from "./Barber";
 
 export enum UserRole {
   ADMIN = "admin",
-  CUSTOMER = "customer"
+  CUSTOMER = "customer",
 }
 
 @Entity({ name: "users" })
@@ -24,7 +24,7 @@ export class User {
   @Column({
     type: "varchar",
     length: 20,
-    default: UserRole.CUSTOMER
+    default: UserRole.CUSTOMER,
   })
   role: UserRole;
 
@@ -32,10 +32,10 @@ export class User {
   createdAt: Date;
 
   // Relacionamento opcional - apenas usuários CUSTOMER podem ter perfil de cliente
-  @OneToOne(() => Customer, customer => customer.user)
+  @OneToOne(() => Customer, (customer) => customer.user)
   customer: Customer;
 
   // Relacionamento opcional - apenas usuários ADMIN podem ter perfil de barbeiro
-  @OneToOne(() => Barber, barber => barber.user)
+  @OneToOne(() => Barber, (barber) => barber.user)
   barber: Barber;
 }

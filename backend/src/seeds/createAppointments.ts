@@ -22,10 +22,12 @@ export async function createAppointments() {
     AppointmentStatus.SCHEDULED,
     AppointmentStatus.IN_PROGRESS,
     AppointmentStatus.COMPLETED,
-    AppointmentStatus.CANCELLED
+    AppointmentStatus.CANCELLED,
   ];
 
-  const appointments = Array.from({ length: 20 }).map(() => {
+  const appointments = [];
+
+  for (let i = 0; i < 20; i++) {
     const customer = faker.helpers.arrayElement(customers);
     const barber = faker.helpers.arrayElement(barbers);
     const service = faker.helpers.arrayElement(services);
@@ -37,33 +39,45 @@ export async function createAppointments() {
     scheduledDateTime.setHours(hour, 0, 0, 0);
 
     const status = faker.helpers.arrayElement(statuses);
-    
+
     // Definir timestamps baseado no status
     let startedAt = null;
     let completedAt = null;
-    
-    if (status === AppointmentStatus.IN_PROGRESS || status === AppointmentStatus.COMPLETED) {
+
+    if (
+      status === AppointmentStatus.IN_PROGRESS ||
+      status === AppointmentStatus.COMPLETED
+    ) {
       startedAt = new Date(scheduledDateTime.getTime() + 5 * 60000); // 5 minutos após agendamento
     }
-    
+
     if (status === AppointmentStatus.COMPLETED) {
       completedAt = new Date(startedAt!.getTime() + 45 * 60000); // 45 minutos de duração
     }
 
-    return appointmentRepo.create({
+    // Criar appointment usando apenas IDs - abordagem mais simples
+    const appointment = {
       customerId: customer.id,
       barberId: barber.id,
       serviceId: service.id,
       scheduledDateTime,
-      totalPrice: service.price,
+      totalPrice: Number(service.price),
       status,
-      startedAt,
-      completedAt,
-      notes: faker.helpers.maybe(() => faker.lorem.sentence(), { probability: 0.3 })
-    });
-  });
+      ...(startedAt && { startedAt }),
+      ...(completedAt && { completedAt }),
+      ...(faker.helpers.maybe(() => faker.lorem.sentence(), {
+        probability: 0.3,
+      }) && {
+        notes: faker.helpers.maybe(() => faker.lorem.sentence(), {
+          probability: 0.3,
+        }),
+      }),
+    };
 
-  await appointmentRepo.save(appointments);
+    const savedAppointment = await appointmentRepo.save(appointment);
+    appointments.push(savedAppointment);
+  }
+
   console.log(
     "✅ Seed: Agendamentos criados com sucesso:",
     appointments.length,

@@ -37,19 +37,21 @@ export class ServiceController {
   async getAll(_req: Request, res: Response) {
     try {
       const services = await serviceRepository.find();
-      
+
       // Converter price de string para number
-      const servicesWithNumericPrice = services.map(service => ({
+      const servicesWithNumericPrice = services.map((service) => ({
         ...service,
-        price: typeof service.price === 'string' ? parseFloat(service.price) : service.price
+        price: typeof service.price === "string"
+          ? parseFloat(service.price)
+          : service.price,
       }));
-      
+
       res.status(200).json(servicesWithNumericPrice);
     } catch (error) {
-      console.error('Erro ao buscar serviços:', error);
-      res.status(500).json({ 
-        message: 'Erro ao buscar serviços',
-        error: error instanceof Error ? error.message : 'Erro desconhecido'
+      console.error("Erro ao buscar serviços:", error);
+      res.status(500).json({
+        message: "Erro ao buscar serviços",
+        error: error instanceof Error ? error.message : "Erro desconhecido",
       });
     }
   }
@@ -66,7 +68,7 @@ export class ServiceController {
     await serviceRepository.remove(service);
 
     res.status(200).json({
-      message: "Serviço excluído com sucesso"
+      message: "Serviço excluído com sucesso",
     });
   }
 }

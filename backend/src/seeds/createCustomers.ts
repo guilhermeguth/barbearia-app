@@ -12,8 +12,10 @@ export async function createCustomers() {
       name: faker.person.fullName(),
       email: faker.internet.email(),
       phone: faker.helpers.fromRegExp(/\([0-9]{2}\) [0-9]{5}-[0-9]{4}/), // Formato brasileiro
-      birthDate: faker.date.birthdate({ min: 18, max: 65, mode: 'age' }),
-      notes: faker.helpers.maybe(() => faker.lorem.sentence(), { probability: 0.3 }),
+      birthDate: faker.date.birthdate({ min: 18, max: 65, mode: "age" }),
+      notes: faker.helpers.maybe(() => faker.lorem.sentence(), {
+        probability: 0.3,
+      }),
       // userId será null por padrão (clientes sem conta no app)
     });
 
