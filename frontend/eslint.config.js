@@ -56,7 +56,11 @@ export default [
       'prefer-promise-reject-errors': 'off',
 
       // allow debugger during development only
-      'no-debugger': process.env.NODE_ENV === 'production' ? 'error' : 'off'
+      'no-debugger': process.env.NODE_ENV === 'production' ? 'error' : 'off',
+      
+      // allow unused vars in Vue templates
+      'vue/no-unused-vars': 'off',
+      '@typescript-eslint/no-unused-vars': 'off'
     }
   },
 
