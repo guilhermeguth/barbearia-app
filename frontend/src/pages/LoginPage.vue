@@ -22,6 +22,7 @@
                   outlined
                   :rules="[val => !!val || 'Email é obrigatório']"
                   prepend-icon="email"
+                  @keydown.enter="handleLogin"
                 />
 
                 <!-- Senha -->
@@ -32,6 +33,7 @@
                   outlined
                   :rules="[val => !!val || 'Senha é obrigatória']"
                   prepend-icon="lock"
+                  @keydown.enter="handleLogin"
                 >
                   <template v-slot:append>
                     <q-icon
@@ -50,7 +52,7 @@
                 <!-- Botão de Login -->
                 <div class="q-mt-lg">
                   <q-btn
-                    @click="handleLogin"
+                    type="submit"
                     color="primary"
                     class="full-width"
                     size="lg"
