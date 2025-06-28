@@ -11,6 +11,7 @@
         icon="refresh" 
         :label="$q.screen.gt.xs ? 'Atualizar' : ''"
         @click="refreshData"
+        :loading="loading"
         :round="$q.screen.xs"
       />
     </div>
@@ -36,9 +37,17 @@
         <q-card-section class="q-pa-md">
           <div class="row items-center no-wrap">
             <div class="col">
-              <div class="text-subtitle1 text-weight-medium">Barbeiros Ativos</div>
-              <div class="text-h3 text-weight-bold q-mt-xs">{{ metrics.activeBarbers }}</div>
-              <div class="text-caption opacity-70 q-mt-xs">de 6 disponíveis</div>
+              <div class="text-subtitle1 text-weight-medium">Barbeiros Cadastrados</div>
+              <div class="text-h3 text-weight-bold q-mt-xs">
+                <span v-if="loading">...</span>
+                <span v-else>{{ metrics.activeBarbers }}</span>
+              </div>
+              <div class="text-caption opacity-70 q-mt-xs">
+                <span v-if="loading">carregando...</span>
+                <span v-else>
+                  {{ metrics.activeBarbers > 0 ? 'profissionais disponíveis' : 'nenhum cadastrado' }}
+                </span>
+              </div>
             </div>
             <div class="col-auto q-ml-md">
               <q-icon name="person" size="2.5rem" class="opacity-60" />
@@ -95,24 +104,68 @@
 
 <script setup>
 import { ref, onMounted } from 'vue'
+import { api as axios } from 'src/boot/axios'
+import { Notify } from 'quasar'
+
+// Estados reativos
+const loading = ref(false)
 
 // Métricas do dashboard
 const metrics = ref({
-  appointmentsToday: 12,
-  activeBarbers: 5,
-  revenueToday: 850,
-  totalClients: 248
+  appointmentsToday: 0,
+  activeBarbers: 0,
+  revenueToday: 0,
+  totalClients: 0
 })
 
 onMounted(() => {
   console.log('Dashboard carregado')
+  loadDashboardData()
 })
 
+// Função para carregar todos os dados do dashboard
+async function loadDashboardData() {
+  loading.value = true
+  
+  try {
+    console.log('Carregando dados do dashboard...')
+    const response = await axios.get('/dashboard')
+    
+    // Atualizar métricas com dados da API
+    const data = response.data
+    metrics.value = {
+      appointmentsToday: data.metrics.appointmentsToday,
+      activeBarbers: data.metrics.totalBarbers,
+      revenueToday: data.metrics.revenueToday,
+      totalClients: data.metrics.totalClients
+    }
+    
+    console.log('Dados do dashboard carregados:', data)
+    
+  } catch (error) {
+    console.error('Erro ao carregar dados do dashboard:', error)
+    
+    // Fallback para dados simulados em caso de erro
+    metrics.value = {
+      appointmentsToday: 0,
+      activeBarbers: 0,
+      revenueToday: 0,
+      totalClients: 0
+    }
+    
+    Notify.create({
+      type: 'negative',
+      message: 'Erro ao carregar dados do dashboard',
+      position: 'bottom-right',
+      icon: 'error'
+    })
+  } finally {
+    loading.value = false
+  }
+}
+
 function refreshData() {
-  // Simular atualização de dados
-  metrics.value.appointmentsToday = Math.floor(Math.random() * 20) + 5
-  metrics.value.revenueToday = Math.floor(Math.random() * 1000) + 500
-  console.log('Dados atualizados')
+  loadDashboardData()
 }
 </script>
 
