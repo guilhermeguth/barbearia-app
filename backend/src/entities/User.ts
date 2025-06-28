@@ -31,6 +31,9 @@ export class User {
   @Column({ type: "timestamp", default: () => "CURRENT_TIMESTAMP" })
   createdAt: Date;
 
+  @Column({ type: "varchar", length: 255, nullable: true })
+  photoUrl?: string;
+
   // Relacionamento opcional - apenas usuários CUSTOMER podem ter perfil de cliente
   @OneToOne(() => Customer, (customer) => customer.user)
   customer: Customer;

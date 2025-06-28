@@ -92,8 +92,8 @@ export const useAuthStore = defineStore('auth', () => {
     try {
       isLoading.value = true
       
-      // Buscar dados atuais do usuário
-      const response = await api.get('/auth/authenticate')
+      // Buscar dados atuais do usuário (incluindo foto)
+      const response = await api.get('/user/profile')
       
       user.value = response.data.user
       localStorage.setItem('user_data', JSON.stringify(response.data.user))

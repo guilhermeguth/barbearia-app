@@ -3,7 +3,7 @@ import { barberRepository } from "../repositories/barberRepository";
 import { userRepository } from "../repositories/userRepository";
 import { BadRequestError, NotFoundError } from "../helpers/api-errors";
 import { UserRole } from "../entities/User";
-import { deleteBarberPhoto, getPhotoUrl } from "../middlewares/uploadMiddleware";
+import { deleteBarberPhoto, getBarberPhotoUrl } from "../middlewares/uploadMiddleware";
 import bcrypt from "bcrypt";
 
 export class BarberController {
@@ -116,7 +116,7 @@ export class BarberController {
       name: barber.name,
       email: barber.email,
       phone: barber.phone,
-      photoUrl: getPhotoUrl(barber.photoUrl, req),
+      photoUrl: getBarberPhotoUrl(barber.photoUrl, req),
       createdAt: barber.createdAt,
       userId: barber.userId,
     }));

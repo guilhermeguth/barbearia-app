@@ -7,7 +7,7 @@ import { ServiceController } from "./controllers/ServiceController";
 import { CustomerController } from "./controllers/CustomerController";
 import { AppointmentController } from "./controllers/AppointmentController";
 import { authMiddleware } from "./middlewares/authMiddleware";
-import { uploadBarberPhoto } from "./middlewares/uploadMiddleware";
+import { uploadBarberPhoto, uploadUserPhoto } from "./middlewares/uploadMiddleware";
 
 const routes = Router();
 
@@ -26,6 +26,11 @@ routes.use(authMiddleware);
 
 // Rota do dashboard
 routes.get("/dashboard", dashboardController.getMetrics);
+
+// Rotas de usuários (autenticadas)
+routes.post("/user/change-password", userController.changePassword);
+routes.get("/user/profile", userController.getProfile);
+routes.post("/user/profile", uploadUserPhoto.single('photo'), userController.updateProfile);
 
 // Rotas de barbeiros
 routes.post("/barbers", uploadBarberPhoto.single('photo'), barberController.persist);

@@ -126,7 +126,14 @@
         <q-item class="user-info-item">
           <q-item-section avatar>
             <q-avatar color="primary" text-color="white" size="40px">
-              <q-icon name="person" />
+              <img 
+                v-if="authStore.user?.photoUrl" 
+                :src="authStore.user.photoUrl" 
+                :alt="`Foto de ${authStore.userName}`"
+                @error="$event.target.style.display = 'none'"
+                style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;"
+              />
+              <q-icon v-else name="person" />
             </q-avatar>
           </q-item-section>
           
@@ -145,14 +152,14 @@
             >
               <q-menu>
                 <q-list style="min-width: 150px">
-                  <q-item clickable>
+                  <q-item clickable @click="openProfileDialog">
                     <q-item-section avatar>
                       <q-icon name="edit" />
                     </q-item-section>
                     <q-item-section>Perfil</q-item-section>
                   </q-item>
                   
-                  <q-item clickable>
+                  <q-item clickable @click="openChangePasswordDialog">
                     <q-item-section avatar>
                       <q-icon name="lock" />
                     </q-item-section>
@@ -179,18 +186,247 @@
       <router-view />
     </q-page-container>
   </q-layout>
+
+  <!-- Dialog de alteração de senha -->
+  <q-dialog v-model="showChangePasswordDialog" persistent>
+    <q-card style="min-width: 400px">
+      <q-card-section class="bg-primary text-white">
+        <div class="text-h6">
+          <q-icon name="lock" class="q-mr-sm" />
+          Alterar Senha
+        </div>
+      </q-card-section>
+
+      <q-card-section>
+        <q-form @submit.prevent="changePassword" class="q-gutter-md">
+          <!-- Senha atual -->
+          <q-input
+            v-model="passwordForm.currentPassword"
+            :type="showCurrentPassword ? 'text' : 'password'"
+            label="Senha atual"
+            outlined
+            :rules="[val => !!val || 'Senha atual é obrigatória']"
+            prepend-icon="lock_outline"
+            autocomplete="current-password"
+          >
+            <template #append>
+              <q-icon
+                :name="showCurrentPassword ? 'visibility_off' : 'visibility'"
+                class="cursor-pointer"
+                @click="showCurrentPassword = !showCurrentPassword"
+              />
+            </template>
+          </q-input>
+
+          <!-- Nova senha -->
+          <q-input
+            v-model="passwordForm.newPassword"
+            :type="showNewPassword ? 'text' : 'password'"
+            label="Nova senha"
+            outlined
+            :rules="[
+              val => !!val || 'Nova senha é obrigatória',
+              val => val.length >= 6 || 'Nova senha deve ter pelo menos 6 caracteres'
+            ]"
+            prepend-icon="lock"
+            autocomplete="new-password"
+            hint="Mínimo de 6 caracteres"
+          >
+            <template #append>
+              <q-icon
+                :name="showNewPassword ? 'visibility_off' : 'visibility'"
+                class="cursor-pointer"
+                @click="showNewPassword = !showNewPassword"
+              />
+            </template>
+          </q-input>
+
+          <!-- Confirmar nova senha -->
+          <q-input
+            v-model="passwordForm.confirmPassword"
+            :type="showConfirmPassword ? 'text' : 'password'"
+            label="Confirmar nova senha"
+            outlined
+            :rules="[
+              val => !!val || 'Confirmação é obrigatória',
+              val => val === passwordForm.newPassword || 'Senhas não coincidem'
+            ]"
+            prepend-icon="lock_clock"
+            autocomplete="new-password"
+          >
+            <template #append>
+              <q-icon
+                :name="showConfirmPassword ? 'visibility_off' : 'visibility'"
+                class="cursor-pointer"
+                @click="showConfirmPassword = !showConfirmPassword"
+              />
+            </template>
+          </q-input>
+        </q-form>
+      </q-card-section>
+
+      <q-card-actions align="right" class="q-pa-md">
+        <q-btn
+          flat
+          label="Cancelar"
+          @click="closeChangePasswordDialog"
+          color="grey-7"
+        />
+        <q-btn
+          @click="changePassword"
+          color="primary"
+          label="Alterar Senha"
+          :loading="changingPassword"
+          :disable="!isPasswordFormValid"
+          unelevated
+        />
+      </q-card-actions>
+    </q-card>
+  </q-dialog>
+
+  <!-- Dialog de perfil -->
+  <q-dialog v-model="showProfileDialog" persistent>
+    <q-card style="min-width: 500px">
+      <q-card-section class="bg-primary text-white">
+        <div class="text-h6">
+          <q-icon name="edit" class="q-mr-sm" />
+          Editar Perfil
+        </div>
+      </q-card-section>
+
+      <q-card-section>
+        <q-form @submit.prevent="updateProfile" class="q-gutter-md">
+          <!-- Preview da foto atual -->
+          <div class="text-center q-mb-md">
+            <q-avatar size="80px" class="q-mb-sm">
+              <img 
+                v-if="profileForm.photoPreview || authStore.user?.photoUrl" 
+                :src="profileForm.photoPreview || authStore.user?.photoUrl" 
+                :alt="`Foto de ${profileForm.name || 'usuário'}`"
+                style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;"
+                @error="$event.target.style.display = 'none'"
+              />
+              <q-icon v-else name="person" size="40px" color="grey-5" />
+            </q-avatar>
+            <div class="text-caption text-grey-6">
+              {{ profileForm.photoPreview ? 'Nova foto selecionada' : 'Foto atual' }}
+            </div>
+          </div>
+
+          <!-- Upload de foto -->
+          <q-file
+            v-model="profileForm.photoFile"
+            label="Alterar foto de perfil"
+            outlined
+            accept="image/*"
+            max-file-size="5242880"
+            @update:model-value="onProfilePhotoSelected"
+            @rejected="onProfilePhotoRejected"
+            prepend-icon="photo_camera"
+            hint="Formatos aceitos: JPG, PNG, GIF, WebP (máximo 5MB)"
+            clearable
+            @clear="clearProfilePhoto"
+          >
+            <template #prepend>
+              <q-icon name="photo_camera" />
+            </template>
+          </q-file>
+
+          <!-- Nome -->
+          <q-input
+            v-model="profileForm.name"
+            label="Nome completo"
+            outlined
+            :rules="[val => !!val || 'Nome é obrigatório']"
+            prepend-icon="person"
+          />
+
+          <!-- Email -->
+          <q-input
+            v-model="profileForm.email"
+            type="email"
+            label="Email"
+            outlined
+            :rules="[
+              val => !!val || 'Email é obrigatório',
+              val => val.includes('@') || 'Email deve ser válido'
+            ]"
+            prepend-icon="email"
+          />
+        </q-form>
+      </q-card-section>
+
+      <q-card-actions align="right" class="q-pa-md">
+        <q-btn
+          flat
+          label="Cancelar"
+          @click="closeProfileDialog"
+          color="grey-7"
+        />
+        <q-btn
+          @click="updateProfile"
+          color="primary"
+          label="Salvar"
+          :loading="updatingProfile"
+          :disable="!isProfileFormValid"
+          unelevated
+        />
+      </q-card-actions>
+    </q-card>
+  </q-dialog>
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, computed } from 'vue'
 import { useAuthStore } from 'src/stores/auth'
 import { useRouter } from 'vue-router'
 import { Notify, Loading, useQuasar } from 'quasar'
+import { api } from 'src/boot/axios'
 
 const leftDrawerOpen = ref(false)
 const authStore = useAuthStore()
 const router = useRouter()
 const $q = useQuasar()
+
+// Estados para alteração de senha
+const showChangePasswordDialog = ref(false)
+const changingPassword = ref(false)
+const showCurrentPassword = ref(false)
+const showNewPassword = ref(false)
+const showConfirmPassword = ref(false)
+
+const passwordForm = ref({
+  currentPassword: '',
+  newPassword: '',
+  confirmPassword: ''
+})
+
+// Estados para perfil
+const showProfileDialog = ref(false)
+const updatingProfile = ref(false)
+
+const profileForm = ref({
+  name: '',
+  email: '',
+  photoFile: null,
+  photoPreview: null
+})
+
+// Computed para validação do formulário de senha
+const isPasswordFormValid = computed(() => {
+  return passwordForm.value.currentPassword &&
+         passwordForm.value.newPassword &&
+         passwordForm.value.confirmPassword &&
+         passwordForm.value.newPassword.length >= 6 &&
+         passwordForm.value.newPassword === passwordForm.value.confirmPassword
+})
+
+// Computed para validação do formulário de perfil
+const isProfileFormValid = computed(() => {
+  return profileForm.value.name &&
+         profileForm.value.email &&
+         profileForm.value.email.includes('@')
+})
 
 function toggleLeftDrawer() {
   console.log('Toggle menu clicked!', leftDrawerOpen.value)
@@ -211,6 +447,182 @@ function toggleTheme() {
     icon: $q.dark.isActive ? 'dark_mode' : 'light_mode',
     timeout: 1500
   })
+}
+
+// Funções para alteração de senha
+function openChangePasswordDialog() {
+  showChangePasswordDialog.value = true
+}
+
+function closeChangePasswordDialog() {
+  showChangePasswordDialog.value = false
+  passwordForm.value = {
+    currentPassword: '',
+    newPassword: '',
+    confirmPassword: ''
+  }
+  showCurrentPassword.value = false
+  showNewPassword.value = false
+  showConfirmPassword.value = false
+}
+
+async function changePassword() {
+  if (!isPasswordFormValid.value) {
+    Notify.create({
+      type: 'warning',
+      message: 'Preencha todos os campos corretamente',
+      position: 'bottom-right'
+    })
+    return
+  }
+
+  changingPassword.value = true
+
+  try {
+    await api.post('/user/change-password', {
+      currentPassword: passwordForm.value.currentPassword,
+      newPassword: passwordForm.value.newPassword
+    })
+
+    Notify.create({
+      type: 'positive',
+      message: 'Senha alterada com sucesso!',
+      position: 'bottom-right',
+      icon: 'check_circle',
+      timeout: 3000
+    })
+
+    closeChangePasswordDialog()
+
+  } catch (error) {
+    console.error('Erro ao alterar senha:', error)
+    
+    Notify.create({
+      type: 'negative',
+      message: error.response?.data?.message || 'Erro ao alterar senha',
+      position: 'bottom-right',
+      icon: 'error',
+      timeout: 4000
+    })
+  } finally {
+    changingPassword.value = false
+  }
+}
+
+// Funções para perfil
+function openProfileDialog() {
+  // Carregar dados atuais do usuário
+  profileForm.value = {
+    name: authStore.user?.name || '',
+    email: authStore.user?.email || '',
+    photoFile: null,
+    photoPreview: authStore.user?.photoUrl || null // Mostrar foto atual se existir
+  }
+  showProfileDialog.value = true
+}
+
+function closeProfileDialog() {
+  showProfileDialog.value = false
+  profileForm.value = {
+    name: '',
+    email: '',
+    photoFile: null,
+    photoPreview: null
+  }
+}
+
+function onProfilePhotoSelected(file) {
+  if (file) {
+    // Criar preview da imagem
+    const reader = new FileReader()
+    reader.onload = (e) => {
+      profileForm.value.photoPreview = e.target.result
+    }
+    reader.readAsDataURL(file)
+  }
+}
+
+function onProfilePhotoRejected(rejectedEntries) {
+  const rejection = rejectedEntries[0]
+  let message = 'Erro ao selecionar arquivo'
+  
+  if (rejection.failedPropValidation === 'max-file-size') {
+    message = 'Arquivo muito grande. Máximo 5MB'
+  } else if (rejection.failedPropValidation === 'accept') {
+    message = 'Tipo de arquivo não aceito. Use apenas imagens'
+  }
+  
+  Notify.create({
+    type: 'negative',
+    message,
+    position: 'bottom-right',
+    icon: 'error'
+  })
+}
+
+function clearProfilePhoto() {
+  profileForm.value.photoFile = null
+  profileForm.value.photoPreview = null
+}
+
+async function updateProfile() {
+  if (!isProfileFormValid.value) {
+    Notify.create({
+      type: 'warning',
+      message: 'Preencha todos os campos corretamente',
+      position: 'bottom-right'
+    })
+    return
+  }
+
+  updatingProfile.value = true
+
+  try {
+    // Criar FormData para envio do arquivo
+    const formData = new FormData()
+    formData.append('name', profileForm.value.name)
+    formData.append('email', profileForm.value.email)
+    
+    // Adicionar foto se selecionada
+    if (profileForm.value.photoFile) {
+      formData.append('photo', profileForm.value.photoFile)
+    }
+
+    const response = await api.post('/user/profile', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data'
+      }
+    })
+
+    // Atualizar dados no store diretamente com a resposta
+    if (response.data.user) {
+      authStore.user = response.data.user
+      localStorage.setItem('user_data', JSON.stringify(response.data.user))
+    }
+
+    Notify.create({
+      type: 'positive',
+      message: 'Perfil atualizado com sucesso!',
+      position: 'bottom-right',
+      icon: 'check_circle',
+      timeout: 3000
+    })
+
+    closeProfileDialog()
+
+  } catch (error) {
+    console.error('Erro ao atualizar perfil:', error)
+    
+    Notify.create({
+      type: 'negative',
+      message: error.response?.data?.message || 'Erro ao atualizar perfil',
+      position: 'bottom-right',
+      icon: 'error',
+      timeout: 4000
+    })
+  } finally {
+    updatingProfile.value = false
+  }
 }
 
 async function handleLogout() {

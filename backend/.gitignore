@@ -4,3 +4,5 @@
 # Uploads - ignorar arquivos mas manter estrutura de pastas
 /uploads/barbers/*
 !/uploads/barbers/.gitkeep
+/uploads/users/*
+!/uploads/users/.gitkeep
