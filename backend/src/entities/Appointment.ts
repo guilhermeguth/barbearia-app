@@ -5,7 +5,7 @@ import {
   ManyToOne,
   PrimaryGeneratedColumn,
 } from "typeorm";
-import { User } from "./User";
+import { Customer } from "./Customer";
 import { Barber } from "./Barber";
 import { Service } from "./Service";
 
@@ -14,9 +14,9 @@ export class Appointment {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @ManyToOne(() => User, (user) => user.appointments)
-  @JoinColumn({ name: "user_id" })
-  user: User;
+  @ManyToOne(() => Customer, (customer) => customer.appointments)
+  @JoinColumn({ name: "customer_id" })
+  customer: Customer;
 
   @ManyToOne(() => Barber, (barber) => barber.appointments)
   @JoinColumn({ name: "barber_id" })
