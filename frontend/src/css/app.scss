@@ -25,9 +25,116 @@
     background-color: rgba(255, 255, 255, 0.03);
   }
   
+  // Correção específica para dialogs
+  .q-dialog .q-card {
+    background-color: #1e1e1e !important;
+    color: #ffffff;
+    
+    .q-card-section {
+      background-color: transparent;
+      
+      &.bg-primary {
+        background-color: #1976d2 !important;
+      }
+      
+      &.bg-negative {
+        background-color: #c10015 !important;
+      }
+      
+      &.bg-info {
+        background-color: #31ccec !important;
+      }
+      
+      &.bg-warning {
+        background-color: #f2c037 !important;
+      }
+    }
+  }
+  
   .q-input {
     .q-field__control {
       background-color: rgba(255, 255, 255, 0.05);
+    }
+  }
+  
+  // Melhorar aparência dos inputs em dialogs
+  .q-dialog {
+    .q-input {
+      .q-field__control {
+        background-color: rgba(255, 255, 255, 0.1) !important;
+        border-color: rgba(255, 255, 255, 0.3);
+      }
+      
+      .q-field__label {
+        color: rgba(255, 255, 255, 0.7);
+      }
+      
+      .q-field__native {
+        color: #ffffff;
+      }
+    }
+    
+    .q-select {
+      .q-field__control {
+        background-color: rgba(255, 255, 255, 0.1) !important;
+      }
+      
+      .q-field__native {
+        color: #ffffff;
+      }
+    }
+    
+    .q-btn {
+      &.q-btn--flat {
+        color: rgba(255, 255, 255, 0.8);
+        
+        &:hover {
+          background-color: rgba(255, 255, 255, 0.1);
+        }
+      }
+    }
+    
+    .q-banner {
+      &.bg-blue-1 {
+        background-color: rgba(25, 118, 210, 0.2) !important;
+        color: #ffffff !important;
+      }
+    }
+    
+    // Melhorar aparência de listas em dialogs
+    .q-list {
+      background-color: rgba(255, 255, 255, 0.05);
+      
+      .q-item {
+        color: #ffffff;
+        
+        &:hover {
+          background-color: rgba(255, 255, 255, 0.1) !important;
+        }
+        
+        &.bg-blue-1 {
+          background-color: rgba(25, 118, 210, 0.3) !important;
+        }
+      }
+      
+      .q-item-label {
+        color: #ffffff;
+        
+        &--caption {
+          color: rgba(255, 255, 255, 0.7);
+        }
+      }
+    }
+    
+    // Melhorar chips no tema escuro
+    .q-chip {
+      &.bg-positive {
+        background-color: #21ba45 !important;
+      }
+      
+      &.bg-grey {
+        background-color: #616161 !important;
+      }
     }
   }
 }
