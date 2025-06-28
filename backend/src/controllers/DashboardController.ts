@@ -2,6 +2,7 @@ import { Request, Response } from "express";
 import { barberRepository } from "../repositories/barberRepository";
 import { userRepository } from "../repositories/userRepository";
 import { serviceRepository } from "../repositories/serviceRepository";
+import { customerRepository } from "../repositories/customerRepository";
 // import { appointmentRepository } from "../repositories/appointmentRepository";
 
 export class DashboardController {
@@ -11,9 +12,13 @@ export class DashboardController {
       const allBarbers = await barberRepository.find();
       const totalBarbers = allBarbers.length;
       
-      // Buscar dados dos usuários/clientes
+      // Buscar dados dos clientes
+      const allCustomers = await customerRepository.find();
+      const totalCustomers = allCustomers.length;
+      
+      // Buscar dados dos usuários
       const allUsers = await userRepository.find();
-      const totalClients = allUsers.length;
+      const totalUsers = allUsers.length;
       
       // Buscar dados dos serviços
       const allServices = await serviceRepository.find();
@@ -36,13 +41,15 @@ export class DashboardController {
           totalBarbers,
           totalServices,
           revenueToday,
-          totalClients
+          totalCustomers,
+          totalUsers
         },
         // Dados adicionais que podem ser úteis
         summary: {
           barbersActive: totalBarbers, // Por enquanto, todos são considerados ativos
           servicesAvailable: totalServices,
-          clientsRegistered: totalClients,
+          customersRegistered: totalCustomers,
+          usersRegistered: totalUsers,
           appointmentsThisMonth: appointmentsToday * 30, // Simulação
           revenueThisMonth: revenueToday * 30 // Simulação
         },
