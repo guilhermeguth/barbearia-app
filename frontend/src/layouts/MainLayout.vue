@@ -15,6 +15,18 @@
           Barbearia App
         </q-toolbar-title>
 
+        <!-- Botão de toggle do tema -->
+        <q-btn
+          flat
+          round
+          :icon="$q.dark.isActive ? 'light_mode' : 'dark_mode'"
+          aria-label="Alternar tema"
+          @click="toggleTheme"
+          class="q-mr-sm"
+        >
+          <q-tooltip>{{ $q.dark.isActive ? 'Tema claro' : 'Tema escuro' }}</q-tooltip>
+        </q-btn>
+
         <!-- Botão de logout no header -->
         <q-btn
           flat
@@ -162,16 +174,32 @@
 import { ref, onMounted } from 'vue'
 import { useAuthStore } from 'src/stores/auth'
 import { useRouter } from 'vue-router'
-import { Notify, Loading } from 'quasar'
+import { Notify, Loading, useQuasar } from 'quasar'
 
 const leftDrawerOpen = ref(false)
 const authStore = useAuthStore()
 const router = useRouter()
+const $q = useQuasar()
 
 function toggleLeftDrawer() {
   console.log('Toggle menu clicked!', leftDrawerOpen.value)
   leftDrawerOpen.value = !leftDrawerOpen.value
   console.log('New state:', leftDrawerOpen.value)
+}
+
+function toggleTheme() {
+  $q.dark.toggle()
+  
+  // Salvar preferência no localStorage
+  localStorage.setItem('darkMode', $q.dark.isActive.toString())
+  
+  Notify.create({
+    type: 'positive',
+    message: `Tema ${$q.dark.isActive ? 'escuro' : 'claro'} ativado`,
+    position: 'bottom-right',
+    icon: $q.dark.isActive ? 'dark_mode' : 'light_mode',
+    timeout: 1500
+  })
 }
 
 async function handleLogout() {
@@ -213,8 +241,14 @@ async function handleLogout() {
   }
 }
 
-// Inicializar autenticação ao montar o componente
+// Inicializar autenticação e tema ao montar o componente
 onMounted(async () => {
   await authStore.initAuth()
+  
+  // Carregar preferência de tema do localStorage
+  const savedDarkMode = localStorage.getItem('darkMode')
+  if (savedDarkMode !== null) {
+    $q.dark.set(savedDarkMode === 'true')
+  }
 })
 </script>
