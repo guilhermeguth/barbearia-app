@@ -95,17 +95,57 @@
       </q-card>
     </div>
 
-    <!-- Placeholder para gráficos futuros -->
-    <div class="row q-gutter-md">
-      <div class="col-12">
-        <q-card>
-          <q-card-section class="text-center q-pa-xl">
-            <q-icon name="bar_chart" size="4rem" color="grey-4" />
-            <div class="text-h6 q-mt-md text-grey-6">Gráficos em breve</div>
-            <div class="text-grey-7">Os gráficos serão implementados em seguida</div>
-          </q-card-section>
-        </q-card>
-      </div>
+    <!-- Gráficos -->
+    <div class="charts-grid">
+      <!-- Ranking de Clientes -->
+      <q-card class="full-height">
+        <q-card-section>
+          <div class="text-h6 q-mb-md flex items-center">
+            <q-icon name="people" class="q-mr-sm" color="primary" />
+            Ranking de Clientes
+          </div>
+          <div class="text-caption text-grey-7 q-mb-md">
+            Clientes com mais atendimentos concluídos
+          </div>
+          
+          <PieChart
+            :data="customerRankingData"
+            :loading="loadingCharts"
+            title="Ranking de Clientes"
+            color="primary"
+            :colors="['#1976D2', '#42A5F5', '#90CAF9', '#BBDEFB', '#E3F2FD', '#FFF3E0', '#FFE0B2', '#FFCC80', '#FFB74D', '#FF9800']"
+            empty-state-icon="people_outline"
+            empty-state-title="Nenhum dado disponível"
+            empty-state-subtitle="Dados aparecerão após atendimentos serem concluídos"
+            :tooltip-formatter="customerTooltipFormatter"
+          />
+        </q-card-section>
+      </q-card>
+
+      <!-- Ranking de Serviços -->
+      <q-card class="full-height">
+        <q-card-section>
+          <div class="text-h6 q-mb-md flex items-center">
+            <q-icon name="design_services" class="q-mr-sm" color="secondary" />
+            Ranking de Serviços
+          </div>
+          <div class="text-caption text-grey-7 q-mb-md">
+            Serviços mais realizados
+          </div>
+          
+          <PieChart
+            :data="serviceRankingData"
+            :loading="loadingCharts"
+            title="Ranking de Serviços"
+            color="secondary"
+            :colors="['#7B1FA2', '#AB47BC', '#CE93D8', '#E1BEE7', '#F3E5F5', '#FFF8E1', '#FFECB3', '#FFE082', '#FFD54F', '#FFC107']"
+            empty-state-icon="design_services"
+            empty-state-title="Nenhum dado disponível"
+            empty-state-subtitle="Dados aparecerão após atendimentos serem concluídos"
+            :tooltip-formatter="serviceTooltipFormatter"
+          />
+        </q-card-section>
+      </q-card>
     </div>
   </q-page>
 </template>
@@ -114,9 +154,11 @@
 import { ref, onMounted } from 'vue'
 import { api as axios } from 'src/boot/axios'
 import { Notify } from 'quasar'
+import PieChart from 'src/components/charts/PieChart.vue'
 
 // Estados reativos
 const loading = ref(false)
+const loadingCharts = ref(false)
 
 // Métricas do dashboard
 const metrics = ref({
@@ -125,6 +167,23 @@ const metrics = ref({
   totalClients: 0,
   totalServices: 0
 })
+
+// Dados dos rankings
+const customerRankingData = ref([])
+const serviceRankingData = ref([])
+
+// Funções de formatação de tooltip
+const customerTooltipFormatter = (value, { dataPointIndex }) => {
+  const client = customerRankingData.value[dataPointIndex]
+  const totalValue = client?.totalValue || 0
+  return `${value} atendimento${value !== 1 ? 's' : ''} (R$ ${totalValue.toFixed(2).replace('.', ',')})`
+}
+
+const serviceTooltipFormatter = (value, { dataPointIndex }) => {
+  const service = serviceRankingData.value[dataPointIndex]
+  const totalValue = service?.totalValue || 0
+  return `${value} realização${value !== 1 ? 'ões' : ''} (R$ ${totalValue.toFixed(2).replace('.', ',')})`
+}
 
 onMounted(() => {
   console.log('Dashboard carregado')
@@ -137,6 +196,8 @@ async function loadDashboardData() {
   
   try {
     console.log('Carregando dados do dashboard...')
+    
+    // Carregar métricas básicas
     const response = await axios.get('/dashboard')
     
     // Atualizar métricas com dados da API
@@ -149,6 +210,9 @@ async function loadDashboardData() {
     }
     
     console.log('Dados do dashboard carregados:', data)
+    
+    // Carregar dados dos gráficos
+    await loadChartsData()
     
   } catch (error) {
     console.error('Erro ao carregar dados do dashboard:', error)
@@ -172,6 +236,44 @@ async function loadDashboardData() {
   }
 }
 
+// Função para carregar dados dos gráficos
+async function loadChartsData() {
+  loadingCharts.value = true
+  
+  try {
+    console.log('Carregando dados dos gráficos...')
+    
+    // Carregar ranking de clientes e serviços em paralelo
+    const [customersResponse, servicesResponse] = await Promise.all([
+      axios.get('/dashboard/customer-ranking'),
+      axios.get('/dashboard/service-ranking')
+    ])
+    
+    console.log('Dados de clientes recebidos:', customersResponse.data)
+    console.log('Dados de serviços recebidos:', servicesResponse.data)
+    
+    customerRankingData.value = customersResponse.data.ranking || []
+    serviceRankingData.value = servicesResponse.data.ranking || []
+    
+    console.log('Dados processados - Clientes:', customerRankingData.value)
+    console.log('Dados processados - Serviços:', serviceRankingData.value)
+    
+  } catch (error) {
+    console.error('Erro ao carregar dados dos gráficos:', error)
+    customerRankingData.value = []
+    serviceRankingData.value = []
+    
+    Notify.create({
+      type: 'negative',
+      message: 'Erro ao carregar dados dos gráficos',
+      position: 'bottom-right',
+      icon: 'error'
+    })
+  } finally {
+    loadingCharts.value = false
+  }
+}
+
 function refreshData() {
   loadDashboardData()
 }
@@ -184,6 +286,12 @@ function refreshData() {
   grid-template-columns: repeat(4, 1fr);
 }
 
+.charts-grid {
+  display: grid;
+  gap: 16px;
+  grid-template-columns: repeat(2, 1fr);
+}
+
 .metric-card {
   min-height: 120px;
   transition: transform 0.2s ease, box-shadow 0.2s ease;
@@ -194,9 +302,17 @@ function refreshData() {
   box-shadow: 0 8px 25px rgba(0,0,0,0.15);
 }
 
+.full-height {
+  height: 100%;
+}
+
 /* Mobile - 1 coluna */
 @media (max-width: 599px) {
   .metrics-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .charts-grid {
     grid-template-columns: 1fr;
   }
   
@@ -219,19 +335,23 @@ function refreshData() {
     grid-template-columns: repeat(2, 1fr);
   }
   
+  .charts-grid {
+    grid-template-columns: 1fr;
+  }
+  
   .metric-card {
     min-height: 130px;
   }
 }
 
-/* Desktop - 4 colunas */
+/* Desktop - 4 colunas para métricas, 2 para gráficos */
 @media (min-width: 960px) {
   .metrics-grid {
     grid-template-columns: repeat(4, 1fr);
   }
   
-  .metric-card {
-    min-height: 120px;
+  .charts-grid {
+    grid-template-columns: repeat(2, 1fr);
   }
 }
 </style>

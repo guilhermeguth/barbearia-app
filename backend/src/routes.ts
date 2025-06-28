@@ -26,6 +26,8 @@ routes.use(authMiddleware);
 
 // Rota do dashboard
 routes.get("/dashboard", dashboardController.getMetrics);
+routes.get("/dashboard/customer-ranking", dashboardController.getCustomerRanking);
+routes.get("/dashboard/service-ranking", dashboardController.getServiceRanking);
 
 // Rotas de usuários (autenticadas)
 routes.post("/user/change-password", userController.changePassword);

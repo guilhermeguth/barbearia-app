@@ -37,9 +37,10 @@ sistema de gerenciamento de barbearia.
 ```
 src/
 ├── components/         # Componentes reutilizáveis
-│   ├── NavigationLink.vue
-│   ├── BarChart.vue
-│   └── LineChart.vue
+│   ├── charts/         # Componentes de gráficos
+│   │   └── PieChart.vue    # Gráfico de pizza reutilizável
+│   ├── EssentialLink.vue
+│   └── NavigationLink.vue
 ├── layouts/           # Layouts da aplicação
 │   └── MainLayout.vue
 ├── pages/             # Páginas/Views
