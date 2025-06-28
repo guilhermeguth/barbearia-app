@@ -1,5 +1,11 @@
-import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from "typeorm";
-import { Appointment } from "./Appointment";
+import { Column, Entity, OneToOne, PrimaryGeneratedColumn } from "typeorm";
+import { Customer } from "./Customer";
+import { Barber } from "./Barber";
+
+export enum UserRole {
+  ADMIN = "admin",
+  CUSTOMER = "customer"
+}
 
 @Entity({ name: "users" })
 export class User {
@@ -15,9 +21,21 @@ export class User {
   @Column({ type: "varchar", length: 255 })
   password: string;
 
+  @Column({
+    type: "varchar",
+    length: 20,
+    default: UserRole.CUSTOMER
+  })
+  role: UserRole;
+
   @Column({ type: "timestamp", default: () => "CURRENT_TIMESTAMP" })
   createdAt: Date;
 
-  @OneToMany(() => Appointment, (appointment) => appointment.user)
-  appointments: Appointment[];
+  // Relacionamento opcional - apenas usuários CUSTOMER podem ter perfil de cliente
+  @OneToOne(() => Customer, customer => customer.user)
+  customer: Customer;
+
+  // Relacionamento opcional - apenas usuários ADMIN podem ter perfil de barbeiro
+  @OneToOne(() => Barber, barber => barber.user)
+  barber: Barber;
 }
