@@ -29,6 +29,22 @@ api.interceptors.request.use(
   }
 )
 
+// Interceptor para capturar erros de resposta
+api.interceptors.response.use(
+  (response) => {
+    return response
+  },
+  (error) => {
+    if (error.response?.status === 401) {
+      // Token expirado ou inválido
+      localStorage.removeItem('auth_token')
+      localStorage.removeItem('user_data')
+      console.log('Token inválido, usuário precisa fazer login novamente')
+    }
+    return Promise.reject(error)
+  }
+)
+
 export default defineBoot(({ app }) => {
   // for use inside Vue files (Options API) through this.$axios and this.$api
 
