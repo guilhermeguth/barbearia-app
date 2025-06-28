@@ -43,6 +43,7 @@
           row-key="id"
           :loading="loading"
           :pagination="pagination"
+          @update:pagination="pagination = $event"
           flat
           class="client-table"
           loading-label="Carregando clientes..."
@@ -483,7 +484,9 @@ const linkForm = ref({
 const pagination = ref({
   page: 1,
   rowsPerPage: 10,
-  rowsNumber: 0
+  sortBy: 'name',
+  descending: false,
+  rowsPerPageOptions: [5, 10, 15, 25, 50]
 })
 
 // Colunas da tabela

@@ -48,6 +48,7 @@
           row-key="id"
           :loading="loading"
           :pagination="pagination"
+          @update:pagination="pagination = $event"
           flat
           class="barber-table"
           loading-label="Carregando barbeiros..."

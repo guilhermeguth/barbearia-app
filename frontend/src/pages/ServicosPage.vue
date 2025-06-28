@@ -48,6 +48,7 @@
           row-key="id"
           :loading="carregando"
           :pagination="pagination"
+          @update:pagination="pagination = $event"
           flat
           class="service-table"
           loading-label="Carregando serviços..."
