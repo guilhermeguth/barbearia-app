@@ -15,8 +15,9 @@ routes.post("/auth/login", authController.login);
 
 routes.use(authMiddleware);
 
-routes.post("/barber/persist", barberController.persist);
-routes.get("/barber/getAll", barberController.getAll);
+routes.post("/barbers", barberController.persist);
+routes.get("/barbers", barberController.getAll);
+routes.delete("/barbers/:id", barberController.delete);
 
 routes.post("/auth/logout", authController.logout);
 routes.get("/auth/authenticate", authController.authenticate);

@@ -37,10 +37,22 @@ export class BarberController {
   async getAll(_req: Request, res: Response) {
     const barbers = await barberRepository.find();
 
-    if (barbers.length === 0) {
-      throw new NotFoundError("Nenhum barbeiro encontrado");
+    res.status(200).json(barbers);
+  }
+
+  async delete(req: Request, res: Response) {
+    const { id } = req.params;
+
+    const barber = await barberRepository.findOneBy({ id: Number(id) });
+
+    if (!barber) {
+      throw new NotFoundError("Barbeiro não encontrado");
     }
 
-    res.status(200).json(barbers);
+    await barberRepository.remove(barber);
+
+    res.status(200).json({
+      message: "Barbeiro excluído com sucesso"
+    });
   }
 }
