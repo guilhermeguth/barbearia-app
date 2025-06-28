@@ -2,17 +2,17 @@ import { faker } from "@faker-js/faker";
 import { appointmentRepository } from "../repositories/appointmentRepository";
 import { barberRepository } from "../repositories/barberRepository";
 import { serviceRepository } from "../repositories/serviceRepository";
-import { userRepository } from "../repositories/userRepository";
+import { customerRepository } from "../repositories/customerRepository";
 
 export async function createAppointments() {
   const appointmentRepo = appointmentRepository;
-  const users = await userRepository.find();
+  const customers = await customerRepository.find();
   const barbers = await barberRepository.find();
   const services = await serviceRepository.find();
 
-  if (users.length === 0 || barbers.length === 0 || services.length === 0) {
+  if (customers.length === 0 || barbers.length === 0 || services.length === 0) {
     console.log(
-      "⚠️ Não há dados suficientes em users, barbers ou services para criar agendamentos.",
+      "⚠️ Não há dados suficientes em customers, barbers ou services para criar agendamentos.",
     );
     return;
   }
@@ -20,14 +20,14 @@ export async function createAppointments() {
   const statuses = ["novo", "em andamento", "finalizado", "cancelado"];
 
   const appointments = Array.from({ length: 20 }).map(() => {
-    const user = faker.helpers.arrayElement(users);
+    const customer = faker.helpers.arrayElement(customers);
     const barber = faker.helpers.arrayElement(barbers);
     const service = faker.helpers.arrayElement(services);
 
     const appointmentDatetime = faker.date.soon({ days: 30 });
 
     return appointmentRepo.create({
-      user,
+      customer,
       barber,
       service,
       status: faker.helpers.arrayElement(statuses),
