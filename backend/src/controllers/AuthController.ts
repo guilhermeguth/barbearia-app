@@ -50,8 +50,16 @@ export class AuthController {
     });
   }
 
-  async logout(_req: Request, res: Response) {
-    // implementar lógica de logout
-    await res.status(200).json({ message: "Usuário deslogado com sucesso" });
+  logout(req: Request, res: Response) {
+    console.log('Logout solicitado para usuário:', req.user?.id);
+    
+    // Em uma implementação mais robusta, você poderia:
+    // - Adicionar o token a uma blacklist
+    // - Invalidar refresh tokens
+    // - Limpar sessões ativas
+    
+    res.status(200).json({ 
+      message: "Usuário deslogado com sucesso" 
+    });
   }
 }
