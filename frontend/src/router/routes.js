@@ -7,6 +7,11 @@ const routes = [
     beforeEnter: requireGuest
   },
   {
+    path: '/reset-password',
+    component: () => import('pages/ResetPasswordPage.vue'),
+    beforeEnter: requireGuest
+  },
+  {
     path: '/',
     component: () => import('layouts/MainLayout.vue'),
     beforeEnter: requireAuth,
@@ -47,7 +52,7 @@ const routes = [
       },
       { 
         path: 'configuracoes', 
-        component: () => import('pages/ConfiguracoesPage.vue'),
+        component: () => import('pages/SettingsPage.vue'),
         name: 'configuracoes'
       }
     ]

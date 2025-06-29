@@ -95,13 +95,16 @@
         </div>
 
         <!-- Dialog para recuperar senha -->
-        <q-dialog v-model="showForgotPassword">
+        <q-dialog v-model="showForgotPassword" @hide="closeForgotPasswordDialog">
           <q-card style="min-width: 350px">
-            <q-card-section>
-              <div class="text-h6">Recuperar Senha</div>
+            <q-card-section class="bg-primary text-white">
+              <div class="text-h6">
+                <q-icon name="lock_reset" class="q-mr-sm" />
+                Recuperar Senha
+              </div>
             </q-card-section>
 
-            <q-card-section class="q-pt-none">
+            <q-card-section>
               <q-input
                 v-model="forgotEmail"
                 type="email"
@@ -111,8 +114,15 @@
             </q-card-section>
 
             <q-card-actions align="right">
-              <q-btn flat label="Cancelar" v-close-popup />
-              <q-btn flat label="Enviar" color="primary" @click="handleForgotPassword" />
+              <q-btn flat label="Cancelar" @click="closeForgotPasswordDialog" />
+              <q-btn 
+                flat 
+                label="Enviar" 
+                color="primary" 
+                @click="handleForgotPassword" 
+                :loading="isLoading"
+                :disable="!forgotEmail || isLoading"
+              />
             </q-card-actions>
           </q-card>
         </q-dialog>
@@ -126,6 +136,7 @@ import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { Notify, useQuasar } from 'quasar'
 import { useAuthStore } from 'src/stores/auth'
+import { api as axios } from 'src/boot/axios'
 
 const router = useRouter()
 const authStore = useAuthStore()
@@ -142,6 +153,12 @@ const showPassword = ref(false)
 const showForgotPassword = ref(false)
 const forgotEmail = ref('')
 const isLoading = ref(false)
+
+// Função para fechar dialog de recuperação de senha
+function closeForgotPasswordDialog() {
+  showForgotPassword.value = false
+  forgotEmail.value = ''
+}
 
 // Função para alternar tema
 function toggleTheme() {
@@ -237,7 +254,7 @@ async function handleLogin() {
 }
 
 // Função para recuperar senha
-function handleForgotPassword() {
+async function handleForgotPassword() {
   if (!forgotEmail.value) {
     Notify.create({
       type: 'warning',
@@ -247,14 +264,34 @@ function handleForgotPassword() {
     return
   }
 
-  // Simular envio de email
-  Notify.create({
-    type: 'positive',
-    message: 'Email de recuperação enviado!',
-    position: 'bottom-right'
-  })
+  isLoading.value = true
 
-  showForgotPassword.value = false
+  try {
+    await axios.post('/auth/forgot-password', {
+      email: forgotEmail.value
+    })
+
+    Notify.create({
+      type: 'positive',
+      message: 'Se o email existir em nosso sistema, você receberá um link para redefinir sua senha.',
+      position: 'bottom-right',
+      timeout: 5000
+    })
+
+    showForgotPassword.value = false
+    forgotEmail.value = ''
+    
+  } catch (error) {
+    console.error('Erro ao solicitar recuperação de senha:', error)
+    
+    Notify.create({
+      type: 'negative',
+      message: error.response?.data?.message || 'Erro ao enviar email. Tente novamente.',
+      position: 'bottom-right'
+    })
+  } finally {
+    isLoading.value = false
+  }
   forgotEmail.value = ''
 }
 

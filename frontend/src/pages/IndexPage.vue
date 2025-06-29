@@ -1,10 +1,13 @@
 <template>
-  <q-page class="q-pa-md">
+  <q-page class="q-pa-lg">
     <!-- Header do Dashboard -->
     <div class="row items-center justify-between q-mb-lg">
       <div>
-        <h4 class="q-ma-none">Dashboard</h4>
-        <p class="text-grey-7 q-ma-none">Bem-vindo ao sistema da Barbearia</p>
+        <h4 class="q-ma-none text-primary text-weight-bold">
+          <q-icon name="dashboard" class="q-mr-sm" />
+          Dashboard
+        </h4>
+        <p class="text-grey-6 q-mb-none">Bem-vindo ao sistema da Barbearia</p>
       </div>
       <q-btn 
         color="primary" 
@@ -13,6 +16,7 @@
         @click="refreshData"
         :loading="loading"
         :round="$q.screen.xs"
+        unelevated
       />
     </div>
 

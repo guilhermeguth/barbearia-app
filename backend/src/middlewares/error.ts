@@ -10,6 +10,13 @@ const errorMiddleware = (
   const statusCode = error.statusCode ?? 500;
   const message = error.statusCode ? error.message : "Internal Server Error";
 
+  // Log do erro para debug
+  console.error('🔥 Error middleware:', {
+    statusCode,
+    message: error.message,
+    stack: error.stack
+  });
+
   res.status(statusCode).json({ message });
 };
 

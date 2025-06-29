@@ -147,7 +147,24 @@ export class AppointmentController {
           throw new NotFoundError(`Serviço com ID ${serviceId} não encontrado`);
         }
         services.push(service);
-        totalPrice += service.price;
+        // Garantir que o preço seja convertido para número
+        let servicePrice;
+        const priceValue = service.price as any; // TypeORM pode retornar decimal como string
+        
+        if (typeof priceValue === 'string') {
+          // Remover formatação se houver e converter
+          servicePrice = parseFloat(priceValue.replace(/[^\d.,]/g, '').replace(',', '.'));
+        } else {
+          servicePrice = Number(priceValue);
+        }
+        
+        // Validar se o preço é válido
+        if (isNaN(servicePrice) || servicePrice <= 0) {
+          throw new BadRequestError(`Preço inválido para o serviço ${service.name}: ${priceValue}`);
+        }
+        
+        console.log('Debug - servicePrice original:', priceValue, 'converted to:', servicePrice);
+        totalPrice += servicePrice;
       }
 
       // Criar data/hora completa
@@ -166,6 +183,14 @@ export class AppointmentController {
         throw new BadRequestError("Horário já ocupado para este barbeiro");
       }
 
+      // Garantir que totalPrice seja um número válido
+      const finalTotalPrice = Number(totalPrice.toFixed(2));
+      if (isNaN(finalTotalPrice) || finalTotalPrice <= 0) {
+        throw new BadRequestError("Erro no cálculo do preço total");
+      }
+
+      console.log('Debug - totalPrice:', totalPrice, 'finalTotalPrice:', finalTotalPrice);
+
       // Criar agendamentos para cada serviço (por enquanto só o primeiro serviço)
       // Futuramente pode ser expandido para múltiplos serviços em sequência
       const newAppointment = appointmentRepository.create({
@@ -173,7 +198,7 @@ export class AppointmentController {
         barberId,
         serviceId: serviceIds[0], // Por enquanto apenas um serviço
         scheduledDateTime,
-        totalPrice,
+        totalPrice: finalTotalPrice,
         notes: notes || null,
         status: AppointmentStatus.SCHEDULED,
       });
@@ -250,7 +275,24 @@ export class AppointmentController {
           throw new NotFoundError("Serviço não encontrado");
         }
         appointment.serviceId = serviceIds[0];
-        appointment.totalPrice = service.price;
+        // Garantir que o preço seja convertido para número
+        let servicePrice;
+        const priceValue = service.price as any; // TypeORM pode retornar decimal como string
+        
+        if (typeof priceValue === 'string') {
+          // Remover formatação se houver e converter
+          servicePrice = parseFloat(priceValue.replace(/[^\d.,]/g, '').replace(',', '.'));
+        } else {
+          servicePrice = Number(priceValue);
+        }
+        
+        // Validar se o preço é válido
+        if (isNaN(servicePrice) || servicePrice <= 0) {
+          throw new BadRequestError(`Preço inválido para o serviço ${service.name}: ${priceValue}`);
+        }
+        
+        appointment.totalPrice = Number(servicePrice.toFixed(2));
+        console.log('Debug update - servicePrice original:', priceValue, 'converted to:', appointment.totalPrice);
       }
 
       // Se estiver mudando a data/hora, verificar disponibilidade

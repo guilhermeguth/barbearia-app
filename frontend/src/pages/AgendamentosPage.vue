@@ -333,7 +333,7 @@
     </div>
 
     <!-- Dialog de formulário -->
-    <q-dialog v-model="showDialog" persistent>
+    <q-dialog v-model="showDialog" @hide="closeDialog">
       <q-card style="min-width: 400px; max-width: 600px">
         <q-card-section class="row items-center q-pb-none">
           <div class="text-h6">
@@ -341,7 +341,7 @@
             {{ editingAppointment ? 'Editar Agendamento' : 'Novo Agendamento' }}
           </div>
           <q-space />
-          <q-btn icon="close" flat round dense v-close-popup />
+          <q-btn icon="close" flat round dense @click="closeDialog" />
         </q-card-section>
 
         <q-card-section>
@@ -434,7 +434,7 @@
         </q-card-section>
 
         <q-card-actions align="right" class="q-pa-md">
-          <q-btn flat label="Cancelar" color="grey-7" v-close-popup />
+          <q-btn flat label="Cancelar" color="grey-7" @click="closeDialog" />
           <q-btn
             label="Salvar"
             color="primary"
@@ -447,7 +447,7 @@
     </q-dialog>
 
     <!-- Dialog de confirmação de exclusão -->
-    <q-dialog v-model="showDeleteDialog" persistent>
+    <q-dialog v-model="showDeleteDialog" @hide="closeDeleteDialog">
       <q-card>
         <q-card-section class="row items-center">
           <q-avatar icon="delete" color="negative" text-color="white" />
@@ -465,7 +465,7 @@
         </q-card-section>
 
         <q-card-actions align="right">
-          <q-btn flat label="Cancelar" color="grey-7" v-close-popup />
+          <q-btn flat label="Cancelar" color="grey-7" @click="closeDeleteDialog" />
           <q-btn
             label="Excluir"
             color="negative"
@@ -812,6 +812,27 @@ const openDialog = (appointment = null) => {
   showDialog.value = true
 }
 
+// Função para fechar dialog principal
+const closeDialog = () => {
+  showDialog.value = false
+  editingAppointment.value = null
+  form.value = {
+    customerId: null,
+    barberId: null,
+    serviceIds: [],
+    appointmentDate: '',
+    startTime: '',
+    notes: '',
+    status: 'scheduled'
+  }
+}
+
+// Função para fechar dialog de exclusão
+const closeDeleteDialog = () => {
+  showDeleteDialog.value = false
+  appointmentToDelete.value = null
+}
+
 const saveAppointment = async () => {
   try {
     saving.value = true
@@ -899,8 +920,7 @@ const cancelAppointment = (appointment) => {
   $q.dialog({
     title: 'Cancelar Agendamento',
     message: 'Tem certeza que deseja cancelar este agendamento?',
-    cancel: true,
-    persistent: true
+    cancel: true
   }).onOk(async () => {
     await changeStatus(appointment, 'cancelled')
   })

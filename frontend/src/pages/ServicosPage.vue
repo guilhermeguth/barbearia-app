@@ -126,7 +126,7 @@
     </q-card>
 
     <!-- Modal para adicionar/editar serviço -->
-    <q-dialog v-model="modalServico" persistent>
+    <q-dialog v-model="modalServico" @hide="fecharModal">
       <q-card style="min-width: 400px">
         <q-card-section class="bg-primary text-white">
           <div class="text-h6">
@@ -189,7 +189,7 @@
     </q-dialog>
 
     <!-- Dialog de confirmação de exclusão -->
-    <q-dialog v-model="dialogExclusao" persistent>
+    <q-dialog v-model="dialogExclusao" @hide="fecharDialogExclusao">
       <q-card>
         <q-card-section class="row items-center">
           <q-avatar icon="warning" color="negative" text-color="white" />

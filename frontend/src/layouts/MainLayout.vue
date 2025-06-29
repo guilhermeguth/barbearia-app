@@ -188,7 +188,7 @@
   </q-layout>
 
   <!-- Dialog de alteração de senha -->
-  <q-dialog v-model="showChangePasswordDialog" persistent>
+  <q-dialog v-model="showChangePasswordDialog" @hide="closeChangePasswordDialog">
     <q-card style="min-width: 400px">
       <q-card-section class="bg-primary text-white">
         <div class="text-h6">
@@ -285,7 +285,7 @@
   </q-dialog>
 
   <!-- Dialog de perfil -->
-  <q-dialog v-model="showProfileDialog" persistent>
+  <q-dialog v-model="showProfileDialog" @hide="closeProfileDialog">
     <q-card style="min-width: 500px">
       <q-card-section class="bg-primary text-white">
         <div class="text-h6">
@@ -377,16 +377,21 @@
 </template>
 
 <script setup>
-import { ref, onMounted, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
+import { useQuasar, Notify, Loading } from 'quasar'
 import { useAuthStore } from 'src/stores/auth'
 import { useRouter } from 'vue-router'
-import { Notify, Loading, useQuasar } from 'quasar'
 import { api } from 'src/boot/axios'
+import { useSessionManager } from 'src/composables/useSessionManager'
 
-const leftDrawerOpen = ref(false)
+const $q = useQuasar()
 const authStore = useAuthStore()
 const router = useRouter()
-const $q = useQuasar()
+
+// Session manager para controlar expiração
+const sessionManager = useSessionManager()
+
+const leftDrawerOpen = ref(false)
 
 // Estados para alteração de senha
 const showChangePasswordDialog = ref(false)
@@ -672,6 +677,11 @@ onMounted(async () => {
   const savedDarkMode = localStorage.getItem('darkMode')
   if (savedDarkMode !== null) {
     $q.dark.set(savedDarkMode === 'true')
+  }
+
+  // Inicializar session manager quando component for montado
+  if (authStore.isAuthenticated) {
+    sessionManager.startSessionTimers()
   }
 })
 </script>

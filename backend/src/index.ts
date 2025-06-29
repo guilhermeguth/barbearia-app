@@ -5,9 +5,17 @@ import path from "path";
 import AppDataSource from "./data-source";
 import routes from "./routes";
 import errorMiddleware from "./middlewares/error";
+import { SettingService } from "./repositories/settingRepository";
 
-AppDataSource.initialize().then(() => {
+AppDataSource.initialize().then(async () => {
   const app = express();
+
+  // Inicializar configurações padrão
+  try {
+    await SettingService.initializeDefaultSettings();
+  } catch (error) {
+    console.error("Erro ao inicializar configurações padrão:", error);
+  }
 
   app.use(cors({
     origin: function (origin, callback) {

@@ -7,6 +7,7 @@ export const useAuthStore = defineStore('auth', () => {
   const user = ref(null)
   const token = ref(localStorage.getItem('auth_token') || null)
   const isLoading = ref(false)
+  let sessionManager = null // Será iniciado quando necessário
 
   // Getters computados
   const isAuthenticated = computed(() => !!token.value && !!user.value)
@@ -41,6 +42,13 @@ export const useAuthStore = defineStore('auth', () => {
       // Configurar token no axios
       api.defaults.headers.common['Authorization'] = `Bearer ${authToken}`
       
+      // Iniciar gerenciamento de sessão
+      if (typeof window !== 'undefined') {
+        const { useSessionManager } = await import('src/composables/useSessionManager')
+        sessionManager = useSessionManager()
+        sessionManager.startSessionTimers()
+      }
+      
       console.log('Store: Login realizado com sucesso')
       return { success: true, data: response.data }
       
@@ -58,24 +66,29 @@ export const useAuthStore = defineStore('auth', () => {
 
   async function logout() {
     try {
-      console.log('Iniciando logout...')
-      
-      // Chamar endpoint de logout no backend se token existir
-      if (token.value) {
-        console.log('Enviando requisição de logout para o backend...')
-        await api.post('/auth/logout')
-        console.log('Logout no backend realizado com sucesso')
+      // Parar timers de sessão
+      if (sessionManager) {
+        sessionManager.clearSessionTimers()
+        sessionManager = null
       }
-    } catch (error) {
-      console.error('Erro ao fazer logout no backend:', error)
-      // Continuar com logout local mesmo se houver erro no backend
-    } finally {
-      console.log('Limpando dados locais...')
       
-      // Limpar dados locais
+      // Fazer logout na API (se token ainda válido)
+      if (token.value) {
+        try {
+          await api.post('/auth/logout')
+        } catch (error) {
+          console.log('Erro no logout da API (provavelmente token inválido):', error)
+        }
+      }
+      
+    } catch (error) {
+      console.error('Erro durante logout:', error)
+    } finally {
+      // Limpar estado independente de erro
       user.value = null
       token.value = null
       
+      // Limpar localStorage
       localStorage.removeItem('auth_token')
       localStorage.removeItem('user_data')
       

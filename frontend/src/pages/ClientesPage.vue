@@ -141,7 +141,7 @@
     </q-card>
 
     <!-- Dialog para adicionar/editar cliente -->
-    <q-dialog v-model="showDialog" persistent>
+    <q-dialog v-model="showDialog" @hide="closeDialog">
       <q-card style="min-width: 500px">
         <q-card-section class="bg-primary text-white">
           <div class="text-h6">
@@ -284,7 +284,7 @@
     </q-dialog>
 
     <!-- Dialog de confirmação de exclusão -->
-    <q-dialog v-model="showDeleteDialog" persistent>
+    <q-dialog v-model="showDeleteDialog" @hide="closeDeleteDialog">
       <q-card>
         <q-card-section class="row items-center">
           <q-avatar icon="warning" color="negative" text-color="white" />
@@ -300,7 +300,7 @@
           <q-btn
             flat
             label="Cancelar"
-            @click="showDeleteDialog = false"
+            @click="closeDeleteDialog"
             color="grey-7"
           />
           <q-btn
@@ -315,7 +315,7 @@
     </q-dialog>
 
     <!-- Dialog para vincular usuário -->
-    <q-dialog v-model="showLinkDialog" persistent>
+    <q-dialog v-model="showLinkDialog" @hide="closeLinkDialog">
       <q-card style="min-width: 400px">
         <q-card-section class="bg-primary text-white">
           <div class="text-h6">
@@ -404,7 +404,7 @@
     </q-dialog>
 
     <!-- Dialog de confirmação para desvincular usuário -->
-    <q-dialog v-model="showUnlinkDialog" persistent>
+    <q-dialog v-model="showUnlinkDialog" @hide="closeUnlinkDialog">
       <q-card>
         <q-card-section class="row items-center">
           <q-avatar icon="link_off" color="warning" text-color="white" />
@@ -420,7 +420,7 @@
           <q-btn
             flat
             label="Cancelar"
-            @click="showUnlinkDialog = false"
+            @click="closeUnlinkDialog"
             color="grey-7"
           />
           <q-btn
@@ -633,6 +633,18 @@ function closeDialog() {
     clientType: 'simple',
     password: ''
   }
+}
+
+// Função para fechar dialog de exclusão
+function closeDeleteDialog() {
+  showDeleteDialog.value = false
+  clientToDelete.value = null
+}
+
+// Função para fechar dialog de desvinculação
+function closeUnlinkDialog() {
+  showUnlinkDialog.value = false
+  clientToUnlink.value = null
 }
 
 // Função para salvar cliente

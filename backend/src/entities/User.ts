@@ -34,6 +34,12 @@ export class User {
   @Column({ type: "varchar", length: 255, nullable: true })
   photoUrl?: string;
 
+  @Column({ type: "varchar", length: 255, nullable: true })
+  resetPasswordToken?: string;
+
+  @Column({ type: "timestamp", nullable: true })
+  resetPasswordExpires?: Date;
+
   // Relacionamento opcional - apenas usuários CUSTOMER podem ter perfil de cliente
   @OneToOne(() => Customer, (customer) => customer.user)
   customer: Customer;

@@ -29,6 +29,18 @@ export class Barber {
   @Column({ type: "timestamp", default: () => "CURRENT_TIMESTAMP" })
   createdAt: Date;
 
+  // Horários de trabalho do barbeiro (JSON com dias da semana e horários)
+  @Column({ type: "json", nullable: true })
+  workingHours: {
+    [key: string]: {
+      enabled: boolean;
+      startTime: string;
+      endTime: string;
+      breakStart?: string;
+      breakEnd?: string;
+    }
+  };
+
   // Relacionamento obrigatório com User (barbeiro deve ter login)
   @OneToOne(() => User, { nullable: false })
   @JoinColumn()
