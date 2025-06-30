@@ -49,13 +49,61 @@ docker-compose up --build
 
 ## 🌐 Deploy no EasyPanel
 
-### Método 1: Via Interface do EasyPanel
+### Método 1: Via Interface do EasyPanel (Aplicação Única)
+
+**Opção A - Docker Compose (Recomendado para iniciantes):**
 
 1. **Acesse o EasyPanel** em sua VPS
 2. **Crie uma nova aplicação**
+   - Nome: `barbearia-app`
+   - Tipo: `Docker Compose`
 3. **Configure o repositório Git** ou faça upload dos arquivos
-4. **Configure as variáveis de ambiente** no painel
-5. **Deploy** usando o arquivo `easypanel-compose.yml`
+4. **Selecione o arquivo**: `easypanel-compose.yml`
+5. **Configure as variáveis de ambiente** no painel:
+   ```env
+   DB_PASSWORD=sua_senha_postgresql
+   JWT_SECRET=seu_jwt_secret_seguro
+   SMTP_HOST=smtp.gmail.com
+   SMTP_USER=seu-email@gmail.com
+   SMTP_PASS=sua_senha_app
+   DOMAIN=seu-dominio.com
+   ```
+6. **Deploy** - O EasyPanel criará todos os serviços automaticamente
+
+**Opção B - Aplicações Separadas (Maior controle):**
+
+1. **Criar Banco de Dados:**
+   - Nome: `barbearia-db`
+   - Tipo: `PostgreSQL 15`
+   - Database: `barbearia_db`
+   - User: `postgres`
+
+2. **Criar Backend API:**
+   - Nome: `barbearia-api`
+   - Tipo: `Docker Build`
+   - Build Context: `./backend`
+   - Dockerfile: `Dockerfile`
+   - Porta: `3000`
+   - Variáveis de ambiente:
+     ```env
+     NODE_ENV=production
+     PORT=3000
+     DB_HOST=barbearia-db
+     DB_PORT=5432
+     DB_USERNAME=postgres
+     DB_PASSWORD=sua_senha_db
+     DB_DATABASE=barbearia_db
+     JWT_SECRET=seu_jwt_secret
+     JWT_EXPIRE=8h
+     ```
+
+3. **Criar Frontend Web:**
+   - Nome: `barbearia-web`
+   - Tipo: `Docker Build`
+   - Build Context: `./frontend`
+   - Dockerfile: `Dockerfile`
+   - Porta: `80`
+   - Domínio: `seu-dominio.com`
 
 ### Método 2: Via SSH
 

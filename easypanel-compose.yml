@@ -1,5 +1,5 @@
-# EasyPanel Template Configuration
-# Este arquivo define como sua aplicação será deployada no EasyPanel
+# EasyPanel Docker Compose - Sistema de Barbearia
+# Use este arquivo no EasyPanel como "Docker Compose"
 
 version: "3.8"
 
@@ -8,13 +8,14 @@ services:
   db:
     image: postgres:15
     environment:
-      POSTGRES_DB: ${DB_NAME:-barbearia_db}
-      POSTGRES_USER: ${DB_USER:-postgres}
+      POSTGRES_DB: barbearia_db
+      POSTGRES_USER: postgres
       POSTGRES_PASSWORD: ${DB_PASSWORD}
     volumes:
       - db_data:/var/lib/postgresql/data
     networks:
       - app-network
+    restart: unless-stopped
 
   # Backend API
   api:
@@ -23,24 +24,29 @@ services:
       dockerfile: Dockerfile
     environment:
       NODE_ENV: production
-      PORT: 3000
+      PORT: 3001
       DB_HOST: db
       DB_PORT: 5432
-      DB_USERNAME: ${DB_USER:-postgres}
+      DB_USERNAME: postgres
       DB_PASSWORD: ${DB_PASSWORD}
-      DB_DATABASE: ${DB_NAME:-barbearia_db}
+      DB_DATABASE: barbearia_db
       JWT_SECRET: ${JWT_SECRET}
       JWT_EXPIRE: 8h
-      # SMTP Configuration
-      SMTP_HOST: ${SMTP_HOST}
+      # SMTP Configuration (opcional)
+      SMTP_HOST: ${SMTP_HOST:-smtp.gmail.com}
       SMTP_PORT: ${SMTP_PORT:-587}
-      SMTP_USER: ${SMTP_USER}
-      SMTP_PASS: ${SMTP_PASS}
+      SMTP_USER: ${SMTP_USER:-}
+      SMTP_PASS: ${SMTP_PASS:-}
     depends_on:
       - db
     networks:
       - app-network
     restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3001/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
 
   # Frontend Web App
   web:
@@ -52,13 +58,19 @@ services:
     networks:
       - app-network
     restart: unless-stopped
+    ports:
+      - "80:80"
+    # Labels para EasyPanel/Traefik
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.barbearia.rule=Host(`${DOMAIN}`)"
+      - "traefik.http.routers.barbearia.rule=Host(`${DOMAIN:-localhost}`)"
       - "traefik.http.services.barbearia.loadbalancer.server.port=80"
+      - "traefik.http.routers.barbearia.entrypoints=websecure"
+      - "traefik.http.routers.barbearia.tls.certresolver=letsencrypt"
 
 volumes:
   db_data:
+    driver: local
 
 networks:
   app-network:
