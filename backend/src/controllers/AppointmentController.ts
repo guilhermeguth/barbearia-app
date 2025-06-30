@@ -148,22 +148,9 @@ export class AppointmentController {
         }
         services.push(service);
         // Garantir que o preço seja convertido para número
-        let servicePrice;
-        const priceValue = service.price as any; // TypeORM pode retornar decimal como string
-        
-        if (typeof priceValue === 'string') {
-          // Remover formatação se houver e converter
-          servicePrice = parseFloat(priceValue.replace(/[^\d.,]/g, '').replace(',', '.'));
-        } else {
-          servicePrice = Number(priceValue);
-        }
-        
-        // Validar se o preço é válido
-        if (isNaN(servicePrice) || servicePrice <= 0) {
-          throw new BadRequestError(`Preço inválido para o serviço ${service.name}: ${priceValue}`);
-        }
-        
-        console.log('Debug - servicePrice original:', priceValue, 'converted to:', servicePrice);
+        const servicePrice = typeof service.price === "string"
+          ? parseFloat(service.price)
+          : service.price;
         totalPrice += servicePrice;
       }
 
@@ -184,12 +171,17 @@ export class AppointmentController {
       }
 
       // Garantir que totalPrice seja um número válido
-      const finalTotalPrice = Number(totalPrice.toFixed(2));
-      if (isNaN(finalTotalPrice) || finalTotalPrice <= 0) {
+      const finalTotalPrice = Number(totalPrice);
+      if (isNaN(finalTotalPrice)) {
         throw new BadRequestError("Erro no cálculo do preço total");
       }
 
-      console.log('Debug - totalPrice:', totalPrice, 'finalTotalPrice:', finalTotalPrice);
+      console.log(
+        "Debug - totalPrice:",
+        totalPrice,
+        "finalTotalPrice:",
+        finalTotalPrice,
+      );
 
       // Criar agendamentos para cada serviço (por enquanto só o primeiro serviço)
       // Futuramente pode ser expandido para múltiplos serviços em sequência
@@ -276,23 +268,10 @@ export class AppointmentController {
         }
         appointment.serviceId = serviceIds[0];
         // Garantir que o preço seja convertido para número
-        let servicePrice;
-        const priceValue = service.price as any; // TypeORM pode retornar decimal como string
-        
-        if (typeof priceValue === 'string') {
-          // Remover formatação se houver e converter
-          servicePrice = parseFloat(priceValue.replace(/[^\d.,]/g, '').replace(',', '.'));
-        } else {
-          servicePrice = Number(priceValue);
-        }
-        
-        // Validar se o preço é válido
-        if (isNaN(servicePrice) || servicePrice <= 0) {
-          throw new BadRequestError(`Preço inválido para o serviço ${service.name}: ${priceValue}`);
-        }
-        
-        appointment.totalPrice = Number(servicePrice.toFixed(2));
-        console.log('Debug update - servicePrice original:', priceValue, 'converted to:', appointment.totalPrice);
+        const servicePrice = typeof service.price === "string"
+          ? parseFloat(service.price)
+          : service.price;
+        appointment.totalPrice = Number(servicePrice);
       }
 
       // Se estiver mudando a data/hora, verificar disponibilidade
