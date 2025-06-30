@@ -1,8 +1,6 @@
 # EasyPanel Docker Compose - Sistema de Barbearia
 # Use este arquivo no EasyPanel como "Docker Compose"
 
-version: "3.8"
-
 services:
   # PostgreSQL Database
   db:
@@ -10,7 +8,7 @@ services:
     environment:
       POSTGRES_DB: barbearia_db
       POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-postgres123_CHANGE_THIS}
     volumes:
       - db_data:/var/lib/postgresql/data
     networks:
@@ -28,9 +26,9 @@ services:
       DB_HOST: db
       DB_PORT: 5432
       DB_USERNAME: postgres
-      DB_PASSWORD: ${DB_PASSWORD}
+      DB_PASSWORD: ${DB_PASSWORD:-postgres123_CHANGE_THIS}
       DB_DATABASE: barbearia_db
-      JWT_SECRET: ${JWT_SECRET}
+      JWT_SECRET: ${JWT_SECRET:-default-jwt-secret-CHANGE-THIS-IMMEDIATELY}
       JWT_EXPIRE: 8h
       # SMTP Configuration (opcional)
       SMTP_HOST: ${SMTP_HOST:-smtp.gmail.com}

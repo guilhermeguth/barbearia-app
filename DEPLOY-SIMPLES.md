@@ -30,24 +30,37 @@ DOMAIN=meusite.com
 ### 2️⃣ **No EasyPanel**
 
 1. **Acesse seu painel EasyPanel**
-2. **Clique em "Create Application"**
+2. **Clique em "Projects" > "Create Project"**
 3. **Configure:**
    - **Nome**: `barbearia-app`
    - **Tipo**: `Docker Compose`
-   - **Source**: Upload/Git do seu projeto
-   - **Compose File**: `easypanel-compose.yml`
 
-4. **Adicione as variáveis de ambiente:**
+4. **Upload dos arquivos:**
+   - Faça upload de toda a pasta do projeto
+   - Ou conecte um repositório Git
+
+5. **Configurar Compose File:**
+   - **Compose File Path**: `easypanel-compose.yml`
+
+6. **⚠️ IMPORTANTE - Adicione as variáveis de ambiente:**
+   
+   Vá em **Environment Variables** e adicione:
    ```
    DB_PASSWORD=MinhaSenh@PostgreSQL123
    JWT_SECRET=minha-chave-jwt-super-segura-aleatoria-123456789
+   ```
+   
+   **Opcionais (para email):**
+   ```
    SMTP_HOST=smtp.gmail.com
    SMTP_USER=seu-email@gmail.com
    SMTP_PASS=sua-senha-de-app-google
-   DOMAIN=meusite.com
+   DOMAIN=seu-dominio.com
    ```
 
-5. **Clique em Deploy**
+7. **Clique em "Deploy"**
+
+### ⚠️ **ATENÇÃO**: Se não adicionar as variáveis, o sistema usará senhas padrão (inseguras)!
 
 ### 3️⃣ **URLs de Acesso**
 
