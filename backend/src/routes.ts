@@ -172,10 +172,17 @@ routes.post(
   "/appointments/test-reminders",
   (req, res) => reminderController.runTest(req, res),
 );
-routes.get("/appointments/date/:date", appointmentController.getByDate);
 routes.get(
-  "/appointments/available-slots/:barberId/:date",
-  appointmentController.getAvailableSlots,
+  "/appointments/date/:date",
+  (req, res) => appointmentController.getByDate(req, res),
+);
+
+// Rota para horários disponíveis
+routes.get(
+  "/appointments/available-slots/:barberId/:date/:serviceDuration",
+  async (req, res) => {
+    await appointmentController.getAvailableSlots(req, res);
+  },
 );
 
 routes.get(

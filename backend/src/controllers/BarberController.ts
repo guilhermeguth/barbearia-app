@@ -3,7 +3,10 @@ import { barberRepository } from "../repositories/barberRepository";
 import { userRepository } from "../repositories/userRepository";
 import { BadRequestError, NotFoundError } from "../helpers/api-errors";
 import { UserRole } from "../entities/User";
-import { deleteBarberPhoto, getBarberPhotoUrl } from "../middlewares/uploadMiddleware";
+import {
+  deleteBarberPhoto,
+  getBarberPhotoUrl,
+} from "../middlewares/uploadMiddleware";
 import bcrypt from "bcrypt";
 
 export class BarberController {
@@ -27,7 +30,7 @@ export class BarberController {
     // Se um novo arquivo foi enviado
     if (uploadedFile) {
       photoPath = uploadedFile.filename; // Apenas o nome do arquivo
-      
+
       // Se estamos editando e há uma foto antiga, deletar
       if (barber?.photoUrl) {
         deleteBarberPhoto(barber.photoUrl);
@@ -175,82 +178,181 @@ export class BarberController {
   }
 
   async updateWorkingHours(req: Request, res: Response) {
-    const { id } = req.params;
-    const { workingHours } = req.body;
+    try {
+      console.log("=== INÍCIO updateWorkingHours ===");
+      const { id } = req.params;
+      const { workingHours } = req.body;
 
-    const barber = await barberRepository.findOneBy({ id: Number(id) });
+      console.log("Parâmetros recebidos:", { id, workingHours });
 
-    if (!barber) {
-      throw new NotFoundError("Barbeiro não encontrado");
-    }
+      const barber = await barberRepository.findOneBy({ id: Number(id) });
 
-    // Validar estrutura dos horários
-    const validDays = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
-    
-    if (!workingHours || typeof workingHours !== 'object') {
-      throw new BadRequestError("Horários de trabalho são obrigatórios");
-    }
+      if (!barber) {
+        console.log("Erro: Barbeiro não encontrado");
+        throw new NotFoundError("Barbeiro não encontrado");
+      }
 
-    // Validar cada dia da semana
-    for (const day of validDays) {
-      if (workingHours[day]) {
-        const dayConfig = workingHours[day];
-        
-        if (typeof dayConfig.enabled !== 'boolean') {
-          throw new BadRequestError(`Campo 'enabled' inválido para ${day}`);
-        }
+      console.log("Barbeiro encontrado:", { id: barber.id, name: barber.name });
 
-        if (dayConfig.enabled) {
-          if (!dayConfig.startTime || !dayConfig.endTime) {
-            throw new BadRequestError(`Horário de início e fim são obrigatórios para ${day}`);
+      // Validar estrutura dos horários
+      if (!workingHours || typeof workingHours !== "object") {
+        console.log("Erro: Horários de trabalho inválidos");
+        throw new BadRequestError("Horários de trabalho são obrigatórios");
+      }
+
+      console.log("Iniciando validação dos dias...");
+
+      // Validar horários inline para evitar problemas de contexto
+      const validDays = [
+        "monday",
+        "tuesday",
+        "wednesday",
+        "thursday",
+        "friday",
+        "saturday",
+        "sunday",
+      ];
+      const timeToMinutes = (time: string): number => {
+        const [hours, minutes] = time.split(":").map(Number);
+        return hours * 60 + minutes;
+      };
+
+      // Validar cada dia da semana
+      for (const day of validDays) {
+        if (workingHours[day]) {
+          console.log(`Validando dia: ${day}`, workingHours[day]);
+          const dayConfig = workingHours[day];
+
+          if (typeof dayConfig.enabled !== "boolean") {
+            console.log(`Erro: Campo 'enabled' inválido para ${day}`);
+            throw new BadRequestError(`Campo 'enabled' inválido para ${day}`);
           }
 
-          // Validar formato de horário (HH:MM)
-          const timeRegex = /^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/;
-          if (!timeRegex.test(dayConfig.startTime) || !timeRegex.test(dayConfig.endTime)) {
-            throw new BadRequestError(`Formato de horário inválido para ${day}. Use HH:MM`);
-          }
+          if (dayConfig.enabled) {
+            console.log(`Dia ${day} está habilitado, validando horários...`);
 
-          // Validar que horário de fim é após o de início
-          const startMinutes = this.timeToMinutes(dayConfig.startTime);
-          const endMinutes = this.timeToMinutes(dayConfig.endTime);
-          
-          if (endMinutes <= startMinutes) {
-            throw new BadRequestError(`Horário de fim deve ser posterior ao de início para ${day}`);
-          }
-
-          // Validar intervalo se fornecido
-          if (dayConfig.breakStart && dayConfig.breakEnd) {
-            if (!timeRegex.test(dayConfig.breakStart) || !timeRegex.test(dayConfig.breakEnd)) {
-              throw new BadRequestError(`Formato de horário de intervalo inválido para ${day}. Use HH:MM`);
+            if (!dayConfig.startTime || !dayConfig.endTime) {
+              console.log(`Erro: Horários obrigatórios faltando para ${day}`);
+              throw new BadRequestError(
+                `Horário de início e fim são obrigatórios para ${day}`,
+              );
             }
 
-            const breakStartMinutes = this.timeToMinutes(dayConfig.breakStart);
-            const breakEndMinutes = this.timeToMinutes(dayConfig.breakEnd);
-
-            if (breakEndMinutes <= breakStartMinutes) {
-              throw new BadRequestError(`Horário de fim do intervalo deve ser posterior ao de início para ${day}`);
+            // Validar formato de horário (HH:MM)
+            const timeRegex = /^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/;
+            if (
+              !timeRegex.test(dayConfig.startTime) ||
+              !timeRegex.test(dayConfig.endTime)
+            ) {
+              console.log(`Erro: Formato de horário inválido para ${day}`, {
+                startTime: dayConfig.startTime,
+                endTime: dayConfig.endTime,
+              });
+              throw new BadRequestError(
+                `Formato de horário inválido para ${day}. Use HH:MM`,
+              );
             }
 
-            if (breakStartMinutes < startMinutes || breakEndMinutes > endMinutes) {
-              throw new BadRequestError(`Intervalo deve estar dentro do horário de trabalho para ${day}`);
+            // Validar que horário de fim é após o de início
+            const startMinutes = timeToMinutes(dayConfig.startTime);
+            const endMinutes = timeToMinutes(dayConfig.endTime);
+
+            console.log(`Horários em minutos para ${day}:`, {
+              startMinutes,
+              endMinutes,
+            });
+
+            if (endMinutes <= startMinutes) {
+              console.log(
+                `Erro: Horário de fim deve ser posterior para ${day}`,
+              );
+              throw new BadRequestError(
+                `Horário de fim deve ser posterior ao de início para ${day}`,
+              );
             }
+
+            // Validar intervalo se fornecido
+            if (dayConfig.breakStart && dayConfig.breakEnd) {
+              console.log(`Validando intervalo para ${day}:`, {
+                breakStart: dayConfig.breakStart,
+                breakEnd: dayConfig.breakEnd,
+              });
+
+              if (
+                !timeRegex.test(dayConfig.breakStart) ||
+                !timeRegex.test(dayConfig.breakEnd)
+              ) {
+                console.log(`Erro: Formato de intervalo inválido para ${day}`);
+                throw new BadRequestError(
+                  `Formato de horário de intervalo inválido para ${day}. Use HH:MM`,
+                );
+              }
+
+              const breakStartMinutes = timeToMinutes(dayConfig.breakStart);
+              const breakEndMinutes = timeToMinutes(dayConfig.breakEnd);
+
+              console.log(`Intervalo em minutos para ${day}:`, {
+                breakStartMinutes,
+                breakEndMinutes,
+              });
+
+              if (breakEndMinutes <= breakStartMinutes) {
+                console.log(
+                  `Erro: Fim do intervalo deve ser posterior para ${day}`,
+                );
+                throw new BadRequestError(
+                  `Horário de fim do intervalo deve ser posterior ao de início para ${day}`,
+                );
+              }
+
+              if (
+                breakStartMinutes < startMinutes || breakEndMinutes > endMinutes
+              ) {
+                console.log(
+                  `Erro: Intervalo fora do horário de trabalho para ${day}`,
+                );
+                throw new BadRequestError(
+                  `Intervalo deve estar dentro do horário de trabalho para ${day}`,
+                );
+              }
+            }
+          } else {
+            console.log(`Dia ${day} está desabilitado`);
           }
+        } else {
+          console.log(`Dia ${day} não fornecido nos dados`);
         }
       }
+
+      console.log("Validação concluída, salvando horários...");
+      barber.workingHours = workingHours;
+      await barberRepository.save(barber);
+
+      console.log("Horários salvos com sucesso");
+      console.log("=== FIM updateWorkingHours ===");
+
+      res.status(200).json({
+        message: "Horários de trabalho atualizados com sucesso",
+        workingHours: barber.workingHours,
+      });
+    } catch (error) {
+      console.error("=== ERRO em updateWorkingHours ===");
+      console.error("Erro completo:", error);
+      console.error(
+        "Stack trace:",
+        error instanceof Error ? error.stack : "Sem stack",
+      );
+      console.error("Tipo do erro:", typeof error);
+      console.error("=== FIM ERRO ===");
+
+      if (error instanceof BadRequestError || error instanceof NotFoundError) {
+        res.status(400).json({ message: error.message });
+      } else {
+        res.status(500).json({
+          message: "Erro interno do servidor",
+          error: error instanceof Error ? error.message : String(error),
+        });
+      }
     }
-
-    barber.workingHours = workingHours;
-    await barberRepository.save(barber);
-
-    res.status(200).json({
-      message: "Horários de trabalho atualizados com sucesso",
-      workingHours: barber.workingHours,
-    });
-  }
-
-  private timeToMinutes(time: string): number {
-    const [hours, minutes] = time.split(':').map(Number);
-    return hours * 60 + minutes;
   }
 }

@@ -470,16 +470,75 @@ export class AppointmentController {
   // Buscar horários disponíveis para um barbeiro em uma data
   async getAvailableSlots(req: Request, res: Response) {
     try {
-      const { barberId, date } = req.params;
+      const { barberId, date, serviceDuration } = req.params;
+      const { serviceId } = req.query;
 
-      // Horário de funcionamento da barbearia (8h às 18h)
-      const startHour = 8;
-      const endHour = 18;
-      // const slotDuration = 60; // 60 minutos por agendamento
+      let duration = parseInt(serviceDuration) || null;
+
+      // Se não foi passada duração mas foi passado serviceId, buscar a duração do serviço
+      if (!duration && serviceId) {
+        const service = await serviceRepository.findOneBy({
+          id: parseInt(serviceId as string),
+        });
+        if (service) {
+          duration = service.duration || 60;
+        } else {
+          duration = 60;
+        }
+      } else if (!duration) {
+        duration = 60;
+      }
+
+      // Validar parâmetros obrigatórios
+      if (!barberId || !date) {
+        return res.status(400).json({
+          message: "Parâmetros barberId e date são obrigatórios",
+        });
+      }
+
+      // Buscar o barbeiro e seus horários de trabalho
+      const barber = await barberRepository.findOne({
+        where: { id: parseInt(barberId) },
+      });
+
+      if (!barber) {
+        return res.status(404).json({
+          message: "Barbeiro não encontrado",
+        });
+      }
+
+      // Determinar o dia da semana da data solicitada
+      const requestDate = new Date(date + "T00:00:00");
+      const dayNames = [
+        "sunday",
+        "monday",
+        "tuesday",
+        "wednesday",
+        "thursday",
+        "friday",
+        "saturday",
+      ];
+      const dayOfWeek = dayNames[requestDate.getDay()];
+
+      // Verificar se o barbeiro trabalha no dia solicitado
+      const dayConfig = barber.workingHours?.[dayOfWeek];
+      if (!dayConfig || !dayConfig.enabled) {
+        return res.status(200).json({
+          availableSlots: [],
+          message: "Barbeiro não trabalha neste dia",
+        });
+      }
+
+      // Extrair horários de início e fim do trabalho
+      const startHour = parseInt(dayConfig.startTime.split(":")[0]);
+      const startMinute = parseInt(dayConfig.startTime.split(":")[1]);
+      const endHour = parseInt(dayConfig.endTime.split(":")[0]);
+      const endMinute = parseInt(dayConfig.endTime.split(":")[1]);
 
       // Buscar agendamentos existentes para o barbeiro na data
       const existingAppointments = await appointmentRepository
         .createQueryBuilder("appointment")
+        .leftJoinAndSelect("appointment.service", "service")
         .where("appointment.barberId = :barberId", { barberId })
         .andWhere("DATE(appointment.scheduledDateTime) = :date", { date })
         .andWhere("appointment.status IN (:...statuses)", {
@@ -490,28 +549,134 @@ export class AppointmentController {
         })
         .getMany();
 
-      // Gerar todos os slots possíveis
+      // Gerar todos os slots possíveis (de 30 em 30 minutos) dentro do horário de trabalho
       const allSlots = [];
-      for (let hour = startHour; hour < endHour; hour++) {
-        allSlots.push(`${hour.toString().padStart(2, "0")}:00`);
+
+      // Converter horário de início para minutos do dia
+      let currentMinutes = startHour * 60 + startMinute;
+      const endMinutes = endHour * 60 + endMinute;
+
+      // Gerar slots de 30 em 30 minutos
+      while (currentMinutes < endMinutes) {
+        const hour = Math.floor(currentMinutes / 60);
+        const minute = currentMinutes % 60;
+        const slotString = `${hour.toString().padStart(2, "0")}:${
+          minute.toString().padStart(2, "0")
+        }`;
+
+        // Verificar se o serviço completo cabe dentro do horário de trabalho
+        const serviceEndMinutes = currentMinutes + duration;
+
+        if (serviceEndMinutes <= endMinutes) {
+          // Verificar se o slot não está no horário de intervalo/almoço
+          let isInBreak = false;
+          if (dayConfig.breakStart && dayConfig.breakEnd) {
+            const breakStartMinutes =
+              parseInt(dayConfig.breakStart.split(":")[0]) * 60 +
+              parseInt(dayConfig.breakStart.split(":")[1]);
+            const breakEndMinutes =
+              parseInt(dayConfig.breakEnd.split(":")[0]) * 60 +
+              parseInt(dayConfig.breakEnd.split(":")[1]);
+
+            // Verificar se QUALQUER PARTE do serviço se sobrepõe com o intervalo
+            // O serviço vai de currentMinutes até serviceEndMinutes
+            if (
+              (currentMinutes >= breakStartMinutes &&
+                currentMinutes < breakEndMinutes) ||
+              (serviceEndMinutes > breakStartMinutes &&
+                serviceEndMinutes <= breakEndMinutes) ||
+              (currentMinutes < breakStartMinutes &&
+                serviceEndMinutes > breakEndMinutes)
+            ) {
+              isInBreak = true;
+            }
+          }
+
+          if (!isInBreak) {
+            allSlots.push(slotString);
+          }
+        }
+
+        currentMinutes += 30; // Próximo slot em 30 minutos
       }
 
-      // Remover slots ocupados
-      const occupiedSlots = existingAppointments.map((appointment) => {
-        const time = new Date(appointment.scheduledDateTime);
-        return `${time.getHours().toString().padStart(2, "0")}:${
-          time.getMinutes().toString().padStart(2, "0")
-        }`;
+      // Calcular slots ocupados considerando a duração dos agendamentos
+      const occupiedSlots = new Set();
+
+      existingAppointments.forEach((appointment) => {
+        const startTime = new Date(appointment.scheduledDateTime);
+        const appointmentDuration = appointment.service?.duration || 60;
+
+        // Calcular quantos slots de 30min este agendamento ocupa
+        const slotsNeeded = Math.ceil(appointmentDuration / 30);
+
+        for (let i = 0; i < slotsNeeded; i++) {
+          const slotTime = new Date(startTime.getTime() + (i * 30 * 60 * 1000));
+          const slotString = `${
+            slotTime.getHours().toString().padStart(2, "0")
+          }:${slotTime.getMinutes().toString().padStart(2, "0")}`;
+          occupiedSlots.add(slotString);
+        }
       });
 
-      const availableSlots = allSlots.filter((slot) =>
-        !occupiedSlots.includes(slot)
-      );
+      // Filtrar slots disponíveis considerando conflitos com agendamentos existentes
+      const availableSlots = allSlots.filter((slot) => {
+        if (occupiedSlots.has(slot)) {
+          return false;
+        }
+
+        // Verificar se há espaço suficiente para o novo serviço
+        const [hour, minute] = slot.split(":").map(Number);
+        const slotMinutes = hour * 60 + minute;
+        const slotsNeeded = Math.ceil(duration / 30);
+
+        // Verificar se todos os slots necessários estão livres
+        for (let i = 0; i < slotsNeeded; i++) {
+          const checkMinutes = slotMinutes + (i * 30);
+          const checkHour = Math.floor(checkMinutes / 60);
+          const checkMinute = checkMinutes % 60;
+          const checkSlot = `${checkHour.toString().padStart(2, "0")}:${
+            checkMinute.toString().padStart(2, "0")
+          }`;
+
+          // Verificar se não está no horário de intervalo
+          if (dayConfig.breakStart && dayConfig.breakEnd) {
+            const breakStartMinutes =
+              parseInt(dayConfig.breakStart.split(":")[0]) * 60 +
+              parseInt(dayConfig.breakStart.split(":")[1]);
+            const breakEndMinutes =
+              parseInt(dayConfig.breakEnd.split(":")[0]) * 60 +
+              parseInt(dayConfig.breakEnd.split(":")[1]);
+
+            // Verificar se este slot específico se sobrepõe com o intervalo
+            const slotEndMinutes = checkMinutes + 30;
+            if (
+              (checkMinutes >= breakStartMinutes &&
+                checkMinutes < breakEndMinutes) ||
+              (slotEndMinutes > breakStartMinutes &&
+                slotEndMinutes <= breakEndMinutes) ||
+              (checkMinutes < breakStartMinutes &&
+                slotEndMinutes > breakEndMinutes)
+            ) {
+              return false;
+            }
+          }
+
+          if (occupiedSlots.has(checkSlot)) {
+            return false;
+          }
+        }
+
+        return true;
+      });
 
       res.status(200).json({ availableSlots });
     } catch (error) {
       console.error("Erro ao buscar horários disponíveis:", error);
-      res.status(500).json({ message: "Erro interno do servidor" });
+      res.status(500).json({
+        message: "Erro interno do servidor",
+        error: error instanceof Error ? error.message : String(error),
+      });
     }
   }
 
