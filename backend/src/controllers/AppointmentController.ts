@@ -627,4 +627,280 @@ export class AppointmentController {
       });
     }
   }
+
+  // Buscar agendamentos em formato para FullCalendar
+  async getCalendarEvents(req: Request, res: Response) {
+    try {
+      const { start, end, barberId } = req.query;
+
+      let query = appointmentRepository
+        .createQueryBuilder("appointment")
+        .leftJoinAndSelect("appointment.customer", "customer")
+        .leftJoinAndSelect("appointment.barber", "barber")
+        .leftJoinAndSelect("appointment.service", "service")
+        .where("appointment.scheduledDateTime >= :start", { start })
+        .andWhere("appointment.scheduledDateTime <= :end", { end });
+
+      if (barberId) {
+        query = query.andWhere("appointment.barberId = :barberId", {
+          barberId,
+        });
+      }
+
+      const appointments = await query.getMany();
+
+      // Converter para formato do FullCalendar
+      const events = appointments.map((appointment) => ({
+        id: appointment.id.toString(),
+        title: `${appointment.customer?.name || "Cliente"} - ${
+          appointment.service?.name || "Serviço"
+        }`,
+        start: appointment.scheduledDateTime,
+        end: new Date(
+          appointment.scheduledDateTime.getTime() +
+            (appointment.service?.duration || 60) * 60000,
+        ),
+        backgroundColor: this.getStatusColor(appointment.status),
+        borderColor: this.getStatusColor(appointment.status),
+        extendedProps: {
+          customerId: appointment.customerId,
+          barberId: appointment.barberId,
+          serviceId: appointment.serviceId,
+          status: appointment.status,
+          notes: appointment.notes,
+          totalPrice: parseFloat(appointment.totalPrice as any) || 0,
+          customerName: appointment.customer?.name,
+          barberName: appointment.barber?.name,
+          serviceName: appointment.service?.name,
+          customerPhone: appointment.customer?.phone,
+          recurrenceType: appointment.recurrenceType,
+        },
+      }));
+
+      res.status(200).json(events);
+    } catch (error) {
+      console.error("Erro ao buscar eventos do calendário:", error);
+      res.status(500).json({ message: "Erro interno do servidor" });
+    }
+  }
+
+  // Mover agendamento (drag & drop)
+  async moveAppointment(req: Request, res: Response) {
+    try {
+      const { id } = req.params;
+      const { newDateTime, barberId } = req.body;
+
+      const appointment = await appointmentRepository.findOne({
+        where: { id: parseInt(id) },
+        relations: ["customer", "barber", "service"],
+      });
+
+      if (!appointment) {
+        throw new NotFoundError("Agendamento não encontrado");
+      }
+
+      const newScheduledDateTime = new Date(newDateTime);
+
+      // Validar horário de funcionamento (8h às 18h)
+      const hour = newScheduledDateTime.getHours();
+      if (hour < 8 || hour >= 18) {
+        throw new BadRequestError(
+          "Horário fora do funcionamento da barbearia (8h às 18h)",
+        );
+      }
+
+      // Verificar se o novo horário está disponível
+      const conflictingAppointment = await appointmentRepository.findOne({
+        where: {
+          barberId: barberId || appointment.barberId,
+          scheduledDateTime: newScheduledDateTime,
+          status: AppointmentStatus.SCHEDULED,
+        },
+      });
+
+      if (
+        conflictingAppointment && conflictingAppointment.id !== appointment.id
+      ) {
+        throw new BadRequestError("Horário já ocupado");
+      }
+
+      // Atualizar agendamento
+      appointment.scheduledDateTime = newScheduledDateTime;
+      if (barberId && barberId !== appointment.barberId) {
+        // Verificar se o barbeiro existe
+        const barber = await barberRepository.findOneBy({ id: barberId });
+        if (!barber) {
+          throw new NotFoundError("Barbeiro não encontrado");
+        }
+        appointment.barberId = barberId;
+      }
+
+      const updatedAppointment = await appointmentRepository.save(appointment);
+
+      res.status(200).json({
+        message: "Agendamento movido com sucesso",
+        appointment: updatedAppointment,
+      });
+    } catch (error) {
+      console.error("Erro ao mover agendamento:", error);
+
+      if (error instanceof BadRequestError || error instanceof NotFoundError) {
+        res.status(400).json({ message: error.message });
+      } else {
+        res.status(500).json({ message: "Erro interno do servidor" });
+      }
+    }
+  }
+
+  // Criar agendamento recorrente
+  async createRecurringAppointment(req: Request, res: Response) {
+    try {
+      const {
+        customerId,
+        barberId,
+        serviceIds,
+        appointmentDate,
+        startTime,
+        notes,
+        recurrenceType,
+        recurrenceEndDate,
+        recurrenceCount = 10, // máximo de 10 repetições
+      } = req.body;
+
+      // Validações básicas
+      if (
+        !customerId || !barberId || (!serviceIds || serviceIds.length === 0) ||
+        !appointmentDate || !startTime || !recurrenceType
+      ) {
+        throw new BadRequestError(
+          "Todos os campos obrigatórios devem ser preenchidos",
+        );
+      }
+
+      // Verificar se entities existem
+      const customer = await customerRepository.findOneBy({ id: customerId });
+      if (!customer) {
+        throw new NotFoundError("Cliente não encontrado");
+      }
+
+      const barber = await barberRepository.findOneBy({ id: barberId });
+      if (!barber) {
+        throw new NotFoundError("Barbeiro não encontrado");
+      }
+
+      const service = await serviceRepository.findOneBy({ id: serviceIds[0] });
+      if (!service) {
+        throw new NotFoundError("Serviço não encontrado");
+      }
+
+      const servicePrice = typeof service.price === "string"
+        ? parseFloat(service.price)
+        : service.price;
+      const firstDateTime = new Date(`${appointmentDate}T${startTime}:00`);
+      const endDate = recurrenceEndDate ? new Date(recurrenceEndDate) : null;
+
+      // Criar agendamento pai
+      const parentAppointment = appointmentRepository.create({
+        customerId,
+        barberId,
+        serviceId: serviceIds[0],
+        scheduledDateTime: firstDateTime,
+        totalPrice: Number(servicePrice),
+        notes: notes || null,
+        status: AppointmentStatus.SCHEDULED,
+        recurrenceType,
+        recurrenceEndDate: endDate || undefined,
+        isRecurringParent: true,
+      });
+
+      const savedParent = await appointmentRepository.save(parentAppointment);
+
+      // Criar agendamentos filhos baseado na recorrência
+      const childAppointments = [];
+      const currentDate = new Date(firstDateTime);
+      let count = 0;
+
+      while (count < recurrenceCount && (!endDate || currentDate <= endDate)) {
+        // Pular a primeira data (já criada como pai)
+        if (count > 0) {
+          // Verificar se não há conflito
+          const existingAppointment = await appointmentRepository.findOne({
+            where: {
+              barberId,
+              scheduledDateTime: currentDate,
+              status: AppointmentStatus.SCHEDULED,
+            },
+          });
+
+          if (!existingAppointment) {
+            const childAppointment = appointmentRepository.create({
+              customerId,
+              barberId,
+              serviceId: serviceIds[0],
+              scheduledDateTime: new Date(currentDate),
+              totalPrice: Number(servicePrice),
+              notes: notes || null,
+              status: AppointmentStatus.SCHEDULED,
+              recurrenceType,
+              parentAppointmentId: (savedParent as any).id,
+              isRecurringParent: false,
+            });
+
+            childAppointments.push(childAppointment);
+          }
+        }
+
+        // Calcular próxima data baseada no tipo de recorrência
+        switch (recurrenceType) {
+          case "weekly":
+            currentDate.setDate(currentDate.getDate() + 7);
+            break;
+          case "biweekly":
+            currentDate.setDate(currentDate.getDate() + 14);
+            break;
+          case "monthly":
+            currentDate.setMonth(currentDate.getMonth() + 1);
+            break;
+          default:
+            count = recurrenceCount; // Para parar o loop
+        }
+        count++;
+      }
+
+      // Salvar agendamentos filhos
+      if (childAppointments.length > 0) {
+        await appointmentRepository.save(childAppointments);
+      }
+
+      res.status(201).json({
+        message: "Agendamentos recorrentes criados com sucesso",
+        parentAppointment: savedParent,
+        childrenCount: childAppointments.length,
+      });
+    } catch (error) {
+      console.error("Erro ao criar agendamentos recorrentes:", error);
+
+      if (error instanceof BadRequestError || error instanceof NotFoundError) {
+        res.status(400).json({ message: error.message });
+      } else {
+        res.status(500).json({ message: "Erro interno do servidor" });
+      }
+    }
+  }
+
+  // Método auxiliar para cores do status
+  private getStatusColor(status: AppointmentStatus): string {
+    switch (status) {
+      case AppointmentStatus.SCHEDULED:
+        return "#1976d2"; // Azul
+      case AppointmentStatus.IN_PROGRESS:
+        return "#388e3c"; // Verde
+      case AppointmentStatus.COMPLETED:
+        return "#616161"; // Cinza
+      case AppointmentStatus.CANCELLED:
+        return "#d32f2f"; // Vermelho
+      default:
+        return "#1976d2";
+    }
+  }
 }

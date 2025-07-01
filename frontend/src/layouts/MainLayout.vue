@@ -66,10 +66,10 @@
           
           <q-item to="/agendamentos" clickable v-ripple exact-active-class="bg-primary text-white">
             <q-item-section avatar>
-              <q-icon name="event" />
+              <q-icon name="calendar_month" />
             </q-item-section>
             <q-item-section>
-              <q-item-label>Agendamentos</q-item-label>
+              <q-item-label>Calendário</q-item-label>
             </q-item-section>
           </q-item>
           

@@ -177,9 +177,15 @@ routes.get(
   "/appointments/available-slots/:barberId/:date",
   appointmentController.getAvailableSlots,
 );
+
 routes.get(
-  "/appointments/test-simple",
-  (req, res) => appointmentController.testSimple(req, res),
+  "/appointments/calendar/events",
+  appointmentController.getCalendarEvents,
+);
+routes.put("/appointments/:id/move", appointmentController.moveAppointment);
+routes.post(
+  "/appointments/recurring",
+  appointmentController.createRecurringAppointment,
 );
 
 // Rotas de configurações (apenas para admin)

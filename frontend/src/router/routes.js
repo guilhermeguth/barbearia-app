@@ -27,8 +27,13 @@ const routes = [
       },
       { 
         path: 'agendamentos', 
-        component: () => import('pages/AgendamentosPage.vue'),
+        component: () => import('pages/CalendarPage.vue'),
         name: 'agendamentos'
+      },
+      { 
+        path: 'calendario', 
+        component: () => import('pages/CalendarPage.vue'),
+        name: 'calendario'
       },
       { 
         path: 'barbeiros', 

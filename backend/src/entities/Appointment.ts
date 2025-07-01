@@ -18,6 +18,13 @@ export enum AppointmentStatus {
   CANCELLED = "cancelled", // Cancelado
 }
 
+export enum RecurrenceType {
+  NONE = "none", // Agendamento único
+  WEEKLY = "weekly", // Semanal
+  BIWEEKLY = "biweekly", // Quinzenal
+  MONTHLY = "monthly", // Mensal
+}
+
 @Entity({ name: "appointments" })
 export class Appointment {
   @PrimaryGeneratedColumn()
@@ -61,6 +68,24 @@ export class Appointment {
 
   @Column({ type: "text", nullable: true })
   notes: string;
+
+  // Campos para agendamentos recorrentes
+  @Column({
+    type: "enum",
+    enum: RecurrenceType,
+    default: RecurrenceType.NONE,
+    name: "recurrence_type",
+  })
+  recurrenceType: RecurrenceType;
+
+  @Column({ type: "date", nullable: true, name: "recurrence_end_date" })
+  recurrenceEndDate: Date;
+
+  @Column({ type: "int", nullable: true, name: "parent_appointment_id" })
+  parentAppointmentId: number;
+
+  @Column({ type: "boolean", default: false, name: "is_recurring_parent" })
+  isRecurringParent: boolean;
 
   @Column({ type: "timestamp", nullable: true, name: "started_at" })
   startedAt: Date;
