@@ -6,6 +6,7 @@ import AppDataSource from "./data-source";
 import routes from "./routes";
 import errorMiddleware from "./middlewares/error";
 import { SettingService } from "./repositories/settingRepository";
+import { ReminderService } from "./services/reminderService";
 
 AppDataSource.initialize().then(async () => {
   const app = express();
@@ -13,8 +14,17 @@ AppDataSource.initialize().then(async () => {
   // Inicializar configurações padrão
   try {
     await SettingService.initializeDefaultSettings();
+    console.log("✅ Configurações padrão inicializadas");
   } catch (error) {
-    console.error("Erro ao inicializar configurações padrão:", error);
+    console.error("❌ Erro ao inicializar configurações padrão:", error);
+  }
+
+  // Inicializar serviço de lembretes automáticos
+  try {
+    ReminderService.start();
+    console.log("✅ Serviço de lembretes automáticos iniciado");
+  } catch (error) {
+    console.error("❌ Erro ao inicializar serviço de lembretes:", error);
   }
 
   app.use(cors({
@@ -42,7 +52,7 @@ AppDataSource.initialize().then(async () => {
   app.use(express.json());
 
   // Servir arquivos estáticos (fotos)
-  app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
+  app.use("/uploads", express.static(path.join(__dirname, "../uploads")));
 
   app.use(routes);
 

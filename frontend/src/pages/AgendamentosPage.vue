@@ -917,11 +917,14 @@ const changeStatus = async (appointment, newStatus) => {
 }
 
 const cancelAppointment = (appointment) => {
-  $q.dialog({
+  const dialog = $q.dialog({
     title: 'Cancelar Agendamento',
     message: 'Tem certeza que deseja cancelar este agendamento?',
-    cancel: true
-  }).onOk(async () => {
+    cancel: true,
+    persistent: true
+  })
+  
+  dialog.onOk(async () => {
     await changeStatus(appointment, 'cancelled')
   })
 }

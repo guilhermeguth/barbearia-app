@@ -5,6 +5,8 @@ import { barberRepository } from "../repositories/barberRepository";
 import { serviceRepository } from "../repositories/serviceRepository";
 import { AppointmentStatus } from "../entities/Appointment";
 import { BadRequestError, NotFoundError } from "../helpers/api-errors";
+import { NotificationService } from "../services/notificationService";
+import { ReminderService } from "../services/reminderService";
 
 export class AppointmentController {
   // Listar todos os agendamentos
@@ -176,13 +178,6 @@ export class AppointmentController {
         throw new BadRequestError("Erro no cálculo do preço total");
       }
 
-      console.log(
-        "Debug - totalPrice:",
-        totalPrice,
-        "finalTotalPrice:",
-        finalTotalPrice,
-      );
-
       // Criar agendamentos para cada serviço (por enquanto só o primeiro serviço)
       // Futuramente pode ser expandido para múltiplos serviços em sequência
       const newAppointment = appointmentRepository.create({
@@ -202,6 +197,19 @@ export class AppointmentController {
         where: { id: savedAppointment.id },
         relations: ["customer", "barber", "service"],
       });
+
+      // Enviar notificação por email (não bloqueia a resposta)
+      NotificationService.sendAppointmentConfirmation(appointmentWithRelations!)
+        .then((result) => {
+          if (result.success) {
+            console.log("📧 Notificação de confirmação enviada com sucesso");
+          } else {
+            console.warn("⚠️ Falha ao enviar notificação:", result.error);
+          }
+        })
+        .catch((error) => {
+          console.error("❌ Erro inesperado ao enviar notificação:", error);
+        });
 
       res.status(201).json({
         message: "Agendamento criado com sucesso",
@@ -369,6 +377,25 @@ export class AppointmentController {
         appointment,
       );
 
+      // Enviar notificação de cancelamento por email (não bloqueia a resposta)
+      NotificationService.sendAppointmentCancellation(appointment)
+        .then((result) => {
+          if (result.success) {
+            console.log("📧 Notificação de cancelamento enviada com sucesso");
+          } else {
+            console.warn(
+              "⚠️ Falha ao enviar notificação de cancelamento:",
+              result.error,
+            );
+          }
+        })
+        .catch((error) => {
+          console.error(
+            "❌ Erro inesperado ao enviar notificação de cancelamento:",
+            error,
+          );
+        });
+
       res.status(200).json({
         message: "Agendamento cancelado com sucesso",
         appointment: cancelledAppointment,
@@ -489,6 +516,115 @@ export class AppointmentController {
     } catch (error) {
       console.error("Erro ao buscar horários disponíveis:", error);
       res.status(500).json({ message: "Erro interno do servidor" });
+    }
+  }
+
+  // Enviar lembrete de agendamento
+  async sendReminder(req: Request, res: Response) {
+    try {
+      const { id } = req.params;
+
+      const appointment = await appointmentRepository.findOne({
+        where: { id: parseInt(id) },
+        relations: ["customer", "barber", "service"],
+      });
+
+      if (!appointment) {
+        throw new NotFoundError("Agendamento não encontrado");
+      }
+
+      if (appointment.status !== AppointmentStatus.SCHEDULED) {
+        throw new BadRequestError(
+          "Só é possível enviar lembrete para agendamentos confirmados",
+        );
+      }
+
+      // Verificar se o agendamento é futuro
+      const now = new Date();
+      if (appointment.scheduledDateTime <= now) {
+        throw new BadRequestError(
+          "Não é possível enviar lembrete para agendamentos passados",
+        );
+      }
+
+      // Enviar lembrete
+      const result = await NotificationService.sendAppointmentReminder(
+        appointment,
+      );
+
+      if (result.success) {
+        res.status(200).json({
+          message: "Lembrete enviado com sucesso",
+          details: result,
+        });
+      } else {
+        res.status(400).json({
+          message: "Falha ao enviar lembrete",
+          error: result.error,
+        });
+      }
+    } catch (error) {
+      console.error("Erro ao enviar lembrete:", error);
+
+      if (error instanceof BadRequestError || error instanceof NotFoundError) {
+        res.status(400).json({ message: error.message });
+      } else {
+        res.status(500).json({ message: "Erro interno do servidor" });
+      }
+    }
+  }
+
+  // Verificar status das notificações
+  async getNotificationStatus(_req: Request, res: Response) {
+    try {
+      const isEnabled = await NotificationService
+        .areEmailNotificationsEnabled();
+
+      res.status(200).json({
+        emailNotificationsEnabled: isEnabled,
+        message: isEnabled
+          ? "Notificações por email estão ativas"
+          : "Notificações por email não estão configuradas",
+      });
+    } catch (error) {
+      console.error("Erro ao verificar status das notificações:", error);
+      res.status(500).json({ message: "Erro interno do servidor" });
+    }
+  }
+
+  // Gerenciar serviço de lembretes automáticos
+  getReminderStatus(_req: Request, res: Response) {
+    try {
+      const status = ReminderService.getStatus();
+
+      res.status(200).json({
+        ...status,
+        timestamp: new Date().toISOString(),
+      });
+    } catch (error) {
+      console.error("❌ Erro ao verificar status de lembretes:", error);
+      res.status(500).json({
+        message: "Erro interno do servidor",
+        error: error instanceof Error ? error.message : String(error),
+      });
+    }
+  }
+
+  // Executar teste de lembretes
+  async testReminders(_req: Request, res: Response) {
+    try {
+      await ReminderService.runTestReminders();
+
+      res.status(200).json({
+        message: "Teste de lembretes executado com sucesso",
+        note: "Verifique os logs do servidor para detalhes",
+      });
+    } catch (error) {
+      console.error("❌ Erro ao executar teste de lembretes:", error);
+      res.status(500).json({
+        message: "Erro interno do servidor",
+        error: error instanceof Error ? error.message : String(error),
+      });
     }
   }
 }
