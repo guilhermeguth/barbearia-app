@@ -201,14 +201,12 @@ export class AppointmentController {
       // Enviar notificação por email (não bloqueia a resposta)
       NotificationService.sendAppointmentConfirmation(appointmentWithRelations!)
         .then((result) => {
-          if (result.success) {
-            console.log("📧 Notificação de confirmação enviada com sucesso");
-          } else {
-            console.warn("⚠️ Falha ao enviar notificação:", result.error);
+          if (!result.success) {
+            console.warn("Falha ao enviar notificação:", result.error);
           }
         })
         .catch((error) => {
-          console.error("❌ Erro inesperado ao enviar notificação:", error);
+          console.error("Erro inesperado ao enviar notificação:", error);
         });
 
       res.status(201).json({
@@ -380,18 +378,16 @@ export class AppointmentController {
       // Enviar notificação de cancelamento por email (não bloqueia a resposta)
       NotificationService.sendAppointmentCancellation(appointment)
         .then((result) => {
-          if (result.success) {
-            console.log("📧 Notificação de cancelamento enviada com sucesso");
-          } else {
+          if (!result.success) {
             console.warn(
-              "⚠️ Falha ao enviar notificação de cancelamento:",
+              "Falha ao enviar notificação de cancelamento:",
               result.error,
             );
           }
         })
         .catch((error) => {
           console.error(
-            "❌ Erro inesperado ao enviar notificação de cancelamento:",
+            "Erro inesperado ao enviar notificação de cancelamento:",
             error,
           );
         });
@@ -602,7 +598,7 @@ export class AppointmentController {
         timestamp: new Date().toISOString(),
       });
     } catch (error) {
-      console.error("❌ Erro ao verificar status de lembretes:", error);
+      console.error("Erro ao verificar status de lembretes:", error);
       res.status(500).json({
         message: "Erro interno do servidor",
         error: error instanceof Error ? error.message : String(error),
@@ -620,7 +616,7 @@ export class AppointmentController {
         note: "Verifique os logs do servidor para detalhes",
       });
     } catch (error) {
-      console.error("❌ Erro ao executar teste de lembretes:", error);
+      console.error("Erro ao executar teste de lembretes:", error);
       res.status(500).json({
         message: "Erro interno do servidor",
         error: error instanceof Error ? error.message : String(error),
@@ -632,6 +628,13 @@ export class AppointmentController {
   async getCalendarEvents(req: Request, res: Response) {
     try {
       const { start, end, barberId } = req.query;
+
+      // Validar parâmetros obrigatórios
+      if (!start || !end) {
+        return res.status(400).json({
+          message: "Parâmetros start e end são obrigatórios",
+        });
+      }
 
       let query = appointmentRepository
         .createQueryBuilder("appointment")
@@ -650,37 +653,46 @@ export class AppointmentController {
       const appointments = await query.getMany();
 
       // Converter para formato do FullCalendar
-      const events = appointments.map((appointment) => ({
-        id: appointment.id.toString(),
-        title: `${appointment.customer?.name || "Cliente"} - ${
-          appointment.service?.name || "Serviço"
-        }`,
-        start: appointment.scheduledDateTime,
-        end: new Date(
-          appointment.scheduledDateTime.getTime() +
-            (appointment.service?.duration || 60) * 60000,
-        ),
-        backgroundColor: this.getStatusColor(appointment.status),
-        borderColor: this.getStatusColor(appointment.status),
-        extendedProps: {
-          customerId: appointment.customerId,
-          barberId: appointment.barberId,
-          serviceId: appointment.serviceId,
-          status: appointment.status,
-          notes: appointment.notes,
-          totalPrice: parseFloat(appointment.totalPrice as any) || 0,
-          customerName: appointment.customer?.name,
-          barberName: appointment.barber?.name,
-          serviceName: appointment.service?.name,
-          customerPhone: appointment.customer?.phone,
-          recurrenceType: appointment.recurrenceType,
-        },
-      }));
+      const events = appointments.map((appointment) => {
+        const serviceDuration = appointment.service?.duration || 60; // default 60 minutos
+        const endTime = new Date(
+          appointment.scheduledDateTime.getTime() + serviceDuration * 60000,
+        );
+
+        return {
+          id: appointment.id.toString(),
+          title: `${appointment.customer?.name || "Cliente"} - ${
+            appointment.service?.name || "Serviço"
+          }`,
+          start: appointment.scheduledDateTime,
+          end: endTime,
+          backgroundColor: this.getStatusColor(appointment.status),
+          borderColor: this.getStatusColor(appointment.status),
+          classNames: [`status-${appointment.status}`, "calendar-event"],
+          extendedProps: {
+            customerId: appointment.customerId,
+            barberId: appointment.barberId,
+            serviceId: appointment.serviceId,
+            status: appointment.status,
+            notes: appointment.notes,
+            totalPrice: parseFloat(appointment.totalPrice as any) || 0,
+            customerName: appointment.customer?.name,
+            barberName: appointment.barber?.name,
+            serviceName: appointment.service?.name,
+            customerPhone: appointment.customer?.phone,
+            recurrenceType: appointment.recurrenceType,
+            duration: serviceDuration,
+          },
+        };
+      });
 
       res.status(200).json(events);
     } catch (error) {
       console.error("Erro ao buscar eventos do calendário:", error);
-      res.status(500).json({ message: "Erro interno do servidor" });
+      res.status(500).json({
+        message: "Erro interno do servidor",
+        error: error instanceof Error ? error.message : String(error),
+      });
     }
   }
 

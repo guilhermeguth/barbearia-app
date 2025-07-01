@@ -180,7 +180,9 @@ routes.get(
 
 routes.get(
   "/appointments/calendar/events",
-  appointmentController.getCalendarEvents,
+  (req, res) => {
+    appointmentController.getCalendarEvents(req, res);
+  },
 );
 routes.put("/appointments/:id/move", appointmentController.moveAppointment);
 routes.post(

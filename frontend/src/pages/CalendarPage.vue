@@ -341,7 +341,7 @@
 </template>
 
 <script>
-import { defineComponent, ref, onMounted, nextTick } from 'vue'
+import { defineComponent, ref, onMounted } from 'vue'
 import { useQuasar } from 'quasar'
 import { api } from 'boot/axios'
 import FullCalendar from '@fullcalendar/vue3'

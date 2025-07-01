@@ -8,9 +8,21 @@ import { Dialog } from 'quasar'
 // good idea to move this instance creation inside of the
 // "export default () => {}" function below (which runs individually
 // for each client)
+
+// Configuração da URL base através de variáveis de ambiente
+const API_HOST = import.meta.env.VITE_API_HOST || 'localhost'
+const API_PORT = import.meta.env.VITE_API_PORT || '3000'
+// Auto-detectar protocolo baseado na porta ou usar o configurado
+const defaultProtocol = API_PORT === '443' ? 'https' : 'http'
+const API_PROTOCOL = import.meta.env.VITE_API_PROTOCOL || defaultProtocol
+const API_URL = `${API_PROTOCOL}://${API_HOST}:${API_PORT}`
+const API_TIMEOUT = parseInt(import.meta.env.VITE_API_TIMEOUT) || 10000
+
+console.log('🔗 Configurando axios com URL:', API_URL)
+
 const api = axios.create({ 
-  baseURL: 'http://localhost:3000',
-  timeout: 10000,
+  baseURL: API_URL,
+  timeout: API_TIMEOUT,
   headers: {
     'Content-Type': 'application/json'
   }
