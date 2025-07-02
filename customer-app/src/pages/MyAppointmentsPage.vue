@@ -49,13 +49,14 @@
     </div>
 
     <!-- Appointments List -->
-    <div v-else class="q-gutter-md">
+    <div v-else class="appointments-container">
       <!-- Próximos Agendamentos -->
-      <div v-if="upcomingAppointments.length > 0">
+      <div v-if="upcomingAppointments.length > 0" class="section">
         <div class="text-h6 text-weight-medium text-grey-7 q-mb-md">
+          <q-icon name="event" class="q-mr-sm" />
           Próximos Agendamentos
         </div>
-        <div class="q-gutter-sm">
+        <div class="appointments-grid">
           <AppointmentCard
             v-for="appointment in upcomingAppointments"
             :key="appointment.id"
@@ -66,11 +67,12 @@
       </div>
 
       <!-- Histórico -->
-      <div v-if="pastAppointments.length > 0" class="q-mt-xl">
+      <div v-if="pastAppointments.length > 0" class="section">
         <div class="text-h6 text-weight-medium text-grey-7 q-mb-md">
+          <q-icon name="history" class="q-mr-sm" />
           Histórico
         </div>
-        <div class="q-gutter-sm">
+        <div class="appointments-grid">
           <AppointmentCard
             v-for="appointment in pastAppointments"
             :key="appointment.id"
@@ -147,21 +149,24 @@ export default defineComponent({
     const upcomingAppointments = computed(() => {
       const now = new Date()
       return appointments.value
-        .filter(apt => new Date(apt.date + 'T' + apt.time) >= now)
-        .sort((a, b) => new Date(a.date + 'T' + a.time) - new Date(b.date + 'T' + b.time))
+        .filter(apt => new Date(apt.scheduledDateTime) >= now && apt.status === 'scheduled')
+        .sort((a, b) => new Date(a.scheduledDateTime) - new Date(b.scheduledDateTime))
     })
 
     const pastAppointments = computed(() => {
       const now = new Date()
       return appointments.value
-        .filter(apt => new Date(apt.date + 'T' + apt.time) < now)
-        .sort((a, b) => new Date(b.date + 'T' + b.time) - new Date(a.date + 'T' + a.time))
+        .filter(apt => new Date(apt.scheduledDateTime) < now || apt.status !== 'scheduled')
+        .sort((a, b) => new Date(b.scheduledDateTime) - new Date(a.scheduledDateTime))
     })
 
     const loadAppointments = async () => {
       try {
         loading.value = true
         await appointmentStore.fetchMyAppointments()
+        console.log('Agendamentos carregados:', appointmentStore.appointments)
+        console.log('Próximos agendamentos:', upcomingAppointments.value)
+        console.log('Agendamentos passados:', pastAppointments.value)
       } catch (error) {
         console.error('Erro ao carregar agendamentos:', error)
         $q.notify({
@@ -241,5 +246,33 @@ export default defineComponent({
 <style lang="scss" scoped>
 .q-page {
   background-color: #f5f5f5;
+}
+
+.appointments-container {
+  .section {
+    margin-bottom: 1.5rem; // Reduz espaçamento entre seções
+    
+    &:last-child {
+      margin-bottom: 0;
+    }
+    
+    // Reduz ainda mais o espaçamento das seções no mobile
+    @media (max-width: 768px) {
+      margin-bottom: 1rem; // Apenas 16px entre seções no mobile
+    }
+  }
+}
+
+.appointments-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem; // Reduz gap padrão de 1rem para 0.5rem
+  align-items: stretch;
+  width: 100%;
+  
+  // Reduz ainda mais o espaçamento entre cards no mobile
+  @media (max-width: 768px) {
+    gap: 0.25rem; // Apenas 4px entre cards no mobile
+  }
 }
 </style>

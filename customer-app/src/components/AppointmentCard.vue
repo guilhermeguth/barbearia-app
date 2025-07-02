@@ -1,55 +1,125 @@
 <template>
   <q-card class="appointment-card">
-    <q-card-section class="q-pb-none">
-      <!-- Data e hora -->
-      <div class="row items-center q-mb-sm">
-        <q-icon name="schedule" class="q-mr-sm text-primary" />
-        <div class="text-body1 text-weight-medium">
-          {{ formatDateTime(appointment.date, appointment.time) }}
+    <!-- Layout para Desktop -->
+    <q-card-section class="row items-center justify-start q-py-md q-px-lg desktop-layout">
+      <!-- Status -->
+      <div class="col-2 status-section">
+        <q-chip 
+          :color="getStatusColor(appointment.status)" 
+          :text-color="getStatusTextColor()"
+          size="sm"
+          :icon="getStatusIcon(appointment.status)"
+          :label="getStatusLabel(appointment.status)"
+          class="status-chip"
+        />
+      </div>
+
+      <!-- Data e Hora -->
+      <div class="col-3 datetime-section">
+        <div class="row items-center">
+          <q-icon name="schedule" size="18px" class="q-mr-sm text-primary" />
+          <div>
+            <div class="text-body2 text-weight-medium datetime-text">
+              {{ formatDateTime(appointment.scheduledDateTime) }}
+            </div>
+          </div>
         </div>
       </div>
-      
+
       <!-- Barbeiro -->
-      <div class="row items-center q-mb-sm">
-        <q-icon name="person" class="q-mr-sm text-grey-6" />
-        <div class="text-body2">{{ appointment.barber?.name || appointment.barberName }}</div>
+      <div class="col-2 barber-section">
+        <div class="row items-center">
+          <q-icon name="person" size="16px" class="q-mr-xs text-grey-6" />
+          <span class="text-body2 item-text">{{ appointment.barber?.name || appointment.barberName }}</span>
+        </div>
       </div>
-      
+
       <!-- Serviço -->
-      <div class="row items-center q-mb-sm">
-        <q-icon name="content_cut" class="q-mr-sm text-grey-6" />
-        <div class="text-body2">{{ appointment.service?.name || appointment.serviceName }}</div>
+      <div class="col-2 service-section">
+        <div class="row items-center">
+          <q-icon name="content_cut" size="16px" class="q-mr-xs text-grey-6" />
+          <span class="text-body2 item-text">{{ appointment.service?.name || appointment.serviceName }}</span>
+        </div>
       </div>
-      
+
       <!-- Preço -->
-      <div class="row items-center">
-        <q-icon name="attach_money" class="q-mr-sm text-green" />
-        <div class="text-body2 text-weight-medium text-green">
-          R$ {{ (appointment.totalPrice || appointment.service?.price || 0).toFixed(2) }}
+      <div class="col-2 price-section">
+        <div class="row items-center">
+          <q-icon name="attach_money" size="16px" class="q-mr-xs text-green" />
+          <span class="text-body2 text-weight-medium text-green price-text">
+            R$ {{ (appointment.totalPrice || appointment.service?.price || 0).toFixed(2) }}
+          </span>
+        </div>
+      </div>
+
+      <!-- Ação -->
+      <div class="col-1 text-right action-section">
+        <q-btn 
+          v-if="showActions && canCancel"
+          flat 
+          dense
+          color="negative" 
+          icon="cancel"
+          label="Cancelar"
+          size="sm"
+          @click="$emit('cancel', appointment)"
+          class="cancel-btn"
+        />
+      </div>
+    </q-card-section>
+
+    <!-- Layout para Mobile -->
+    <q-card-section class="mobile-layout">
+      <div class="mobile-content">
+        <!-- Linha 1: Status + Data/Hora -->
+        <div class="mobile-row mobile-row-main">
+          <q-chip 
+            :color="getStatusColor(appointment.status)" 
+            :text-color="getStatusTextColor()"
+            size="xs"
+            :icon="getStatusIcon(appointment.status)"
+            :label="getStatusLabel(appointment.status)"
+            class="mobile-status-chip"
+          />
+          <div class="mobile-datetime">
+            <q-icon name="schedule" size="14px" class="q-mr-xs text-primary" />
+            <span class="datetime-mobile">{{ formatDateTime(appointment.scheduledDateTime) }}</span>
+          </div>
+        </div>
+
+        <!-- Linha 2: Barbeiro + Serviço -->
+        <div class="mobile-row mobile-row-details">
+          <div class="mobile-barber">
+            <q-icon name="person" size="12px" class="q-mr-xs text-grey-6" />
+            <span class="mobile-text">{{ appointment.barber?.name || appointment.barberName }}</span>
+          </div>
+          <div class="mobile-service">
+            <q-icon name="content_cut" size="12px" class="q-mr-xs text-grey-6" />
+            <span class="mobile-text">{{ appointment.service?.name || appointment.serviceName }}</span>
+          </div>
+        </div>
+
+        <!-- Linha 3: Preço + Ação -->
+        <div class="mobile-row mobile-row-action">
+          <div class="mobile-price">
+            <q-icon name="attach_money" size="12px" class="q-mr-xs text-green" />
+            <span class="mobile-price-text">
+              R$ {{ (appointment.totalPrice || appointment.service?.price || 0).toFixed(2) }}
+            </span>
+          </div>
+          <q-btn 
+            v-if="showActions && canCancel"
+            flat 
+            dense
+            color="negative" 
+            icon="cancel"
+            size="xs"
+            @click="$emit('cancel', appointment)"
+            class="mobile-cancel-btn"
+          />
         </div>
       </div>
     </q-card-section>
-
-    <!-- Status -->
-    <q-card-section class="q-pt-none">
-      <q-chip 
-        :color="getStatusColor(appointment.status)" 
-        :text-color="getStatusTextColor(appointment.status)"
-        size="sm"
-        :label="getStatusLabel(appointment.status)"
-      />
-    </q-card-section>
-
-    <!-- Ações -->
-    <q-card-actions v-if="showActions && canCancel" align="right">
-      <q-btn 
-        flat 
-        color="negative" 
-        label="Cancelar"
-        size="sm"
-        @click="$emit('cancel', appointment)"
-      />
-    </q-card-actions>
   </q-card>
 </template>
 
@@ -74,17 +144,13 @@ export default defineComponent({
 
   setup(props) {
     const canCancel = computed(() => {
-      if (props.appointment.status !== 'SCHEDULED') return false
+      if (props.appointment.status !== 'scheduled') return false
       
-      // Suporte para diferentes formatos de data
-      let appointmentTime
-      if (props.appointment.scheduledDateTime) {
-        appointmentTime = new Date(props.appointment.scheduledDateTime)
-      } else if (props.appointment.date && props.appointment.time) {
-        appointmentTime = new Date(props.appointment.date + 'T' + props.appointment.time)
-      } else {
-        return false
-      }
+      if (!props.appointment.scheduledDateTime) return false
+      
+      const appointmentTime = new Date(props.appointment.scheduledDateTime)
+      
+      if (isNaN(appointmentTime.getTime())) return false
       
       const now = new Date()
       const hoursUntil = (appointmentTime.getTime() - now.getTime()) / (1000 * 60 * 60)
@@ -98,48 +164,63 @@ export default defineComponent({
   },
 
   methods: {
-    formatDateTime(date, time) {
-      let dateTime
-      
-      if (date && time) {
-        dateTime = new Date(date + 'T' + time)
-      } else if (date) {
-        dateTime = new Date(date)
-      } else {
+    formatDateTime(scheduledDateTime) {
+      if (!scheduledDateTime) {
         return 'Data inválida'
       }
       
-      return dateTime.toLocaleString('pt-BR', {
-        weekday: 'short',
+      const dateTime = new Date(scheduledDateTime)
+      
+      if (isNaN(dateTime.getTime())) {
+        return 'Data inválida'
+      }
+      
+      const date = dateTime.toLocaleDateString('pt-BR', {
         day: '2-digit',
         month: '2-digit',
+        year: 'numeric'
+      })
+      
+      const time = dateTime.toLocaleTimeString('pt-BR', {
         hour: '2-digit',
         minute: '2-digit'
       })
+      
+      return `${date} • ${time}`
     },
 
     getStatusColor(status) {
       const colors = {
-        'SCHEDULED': 'primary',
-        'IN_PROGRESS': 'orange',
-        'COMPLETED': 'positive',
-        'CANCELLED': 'negative'
+        'scheduled': 'primary',
+        'in_progress': 'orange',
+        'completed': 'positive',
+        'cancelled': 'negative'
       }
       return colors[status] || 'grey'
     },
 
-    getStatusTextColor(status) {
-      return status === 'COMPLETED' ? 'white' : 'white'
+    getStatusTextColor() {
+      return 'white'
     },
 
     getStatusLabel(status) {
       const labels = {
-        'SCHEDULED': 'Agendado',
-        'IN_PROGRESS': 'Em andamento',
-        'COMPLETED': 'Concluído',
-        'CANCELLED': 'Cancelado'
+        'scheduled': 'Agendado',
+        'in_progress': 'Em andamento',
+        'completed': 'Concluído',
+        'cancelled': 'Cancelado'
       }
       return labels[status] || status
+    },
+
+    getStatusIcon(status) {
+      const icons = {
+        'scheduled': 'event',
+        'in_progress': 'schedule',
+        'completed': 'check_circle',
+        'cancelled': 'cancel'
+      }
+      return icons[status] || 'help'
     }
   }
 })
@@ -149,5 +230,149 @@ export default defineComponent({
 .appointment-card {
   border-radius: 8px;
   border-left: 4px solid $primary;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  width: 100%;
+  
+  .q-card__section {
+    justify-content: flex-start;
+    align-items: center;
+  }
+  
+  &:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  }
+}
+
+// Layout Desktop - padrão
+.desktop-layout {
+  display: flex;
+}
+
+// Layout Mobile - escondido por padrão
+.mobile-layout {
+  display: none;
+}
+
+// Responsividade para mobile
+@media (max-width: 768px) {
+  .appointment-card {
+    margin-bottom: 0; // Remove completamente o margin-bottom entre cards
+  }
+  
+  // Esconde o layout desktop
+  .desktop-layout {
+    display: none !important;
+  }
+  
+  // Mostra o layout mobile
+  .mobile-layout {
+    display: block !important;
+    padding: 6px 10px !important; // Reduz ainda mais o padding interno
+  }
+  
+  .mobile-content {
+    display: flex;
+    flex-direction: column;
+    gap: 4px; // Reduz gap interno de 6px para 4px
+  }
+  
+  .mobile-row {
+    display: flex;
+    align-items: center;
+    
+    &.mobile-row-main {
+      justify-content: space-between;
+      margin-bottom: 2px;
+    }
+    
+    &.mobile-row-details {
+      justify-content: space-between;
+      margin-bottom: 2px;
+    }
+    
+    &.mobile-row-action {
+      justify-content: space-between;
+      align-items: center;
+    }
+  }
+  
+  .mobile-status-chip {
+    font-size: 9px !important;
+    height: 16px !important;
+    
+    .q-chip__icon {
+      font-size: 10px !important;
+    }
+  }
+  
+  .mobile-datetime {
+    display: flex;
+    align-items: center;
+    
+    .datetime-mobile {
+      font-size: 12px;
+      font-weight: 500;
+      color: #333;
+    }
+  }
+  
+  .mobile-barber,
+  .mobile-service {
+    display: flex;
+    align-items: center;
+    flex: 1;
+    
+    .mobile-text {
+      font-size: 11px;
+      color: #666;
+    }
+  }
+  
+  .mobile-service {
+    text-align: right;
+  }
+  
+  .mobile-price {
+    display: flex;
+    align-items: center;
+    
+    .mobile-price-text {
+      font-size: 12px;
+      font-weight: 600;
+      color: #4caf50;
+    }
+  }
+  
+  .mobile-cancel-btn {
+    border: 1px solid #f44336;
+    border-radius: 12px;
+    font-size: 9px !important;
+    padding: 2px 6px !important;
+    height: 20px !important;
+    min-height: 20px !important;
+    
+    .q-btn__content {
+      .q-icon {
+        font-size: 11px !important;
+      }
+    }
+    
+    &:hover {
+      background-color: rgba(244, 67, 54, 0.1);
+    }
+  }
+}
+
+// Estilos do layout desktop
+.cancel-btn {
+  border: 1px solid #f44336;
+  border-radius: 16px;
+  font-size: 11px;
+  padding: 2px 8px;
+  
+  &:hover {
+    background-color: rgba(244, 67, 54, 0.1);
+  }
 }
 </style>
