@@ -26,7 +26,10 @@ export const authMiddleware = async (
     process.env.JWT_SECRET ?? "",
   ) as JwtPayload;
 
-  const user = await userRepository.findOneBy({ id });
+  const user = await userRepository.findOne({
+    where: { id },
+    relations: ["customer", "barber"],
+  });
 
   if (!user) {
     throw new UnauthorizedError("Usuário não autorizado");

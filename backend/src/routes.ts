@@ -6,9 +6,15 @@ import { DashboardController } from "./controllers/DashboardController";
 import { ServiceController } from "./controllers/ServiceController";
 import { CustomerController } from "./controllers/CustomerController";
 import { AppointmentController } from "./controllers/AppointmentController";
+import { CustomerAppointmentController } from "./controllers/CustomerAppointmentController";
 import { ReminderController } from "./controllers/ReminderController";
 import { SettingsController } from "./controllers/SettingsController";
 import { authMiddleware } from "./middlewares/authMiddleware";
+import {
+  requireAdmin,
+  requireBarber,
+  requireCustomer,
+} from "./middlewares/roleMiddleware";
 import {
   uploadBarberPhoto,
   uploadUserPhoto,
@@ -23,6 +29,7 @@ const dashboardController = new DashboardController();
 const serviceController = new ServiceController();
 const customerController = new CustomerController();
 const appointmentController = new AppointmentController();
+const customerAppointmentController = new CustomerAppointmentController();
 const reminderController = new ReminderController();
 const settingsController = new SettingsController();
 
@@ -104,13 +111,92 @@ routes.post("/test-reminders-public", async (_req, res) => {
 
 routes.use(authMiddleware);
 
-// Rota do dashboard
-routes.get("/dashboard", dashboardController.getMetrics);
+// ======= ROTAS PARA CLIENTES (PWA) =======
+// Rota para listar barbeiros (disponível para clientes)
+routes.get(
+  "/client/barbers",
+  requireCustomer,
+  (req, res) => customerAppointmentController.getAvailableBarbers(req, res),
+);
+
+// Rota para listar serviços (disponível para clientes)
+routes.get(
+  "/client/services",
+  requireCustomer,
+  (req, res) => customerAppointmentController.getAvailableServices(req, res),
+);
+
+// Rota para horários disponíveis (usa o mesmo controller do admin)
+routes.get(
+  "/client/available-slots/:barberId/:date/:serviceDuration",
+  requireCustomer,
+  async (req, res) => {
+    await appointmentController.getAvailableSlots(req, res);
+  },
+);
+
+// Rota para criar agendamento (disponível para clientes)
+routes.post(
+  "/client/appointments",
+  requireCustomer,
+  (req, res) => customerAppointmentController.createAppointment(req, res),
+);
+
+// Rota para listar agendamentos do cliente
+routes.get(
+  "/client/appointments",
+  requireCustomer,
+  (req, res) => customerAppointmentController.getMyAppointments(req, res),
+);
+
+// Rota para cancelar agendamento (disponível para clientes)
+routes.put(
+  "/client/appointments/:id/cancel",
+  requireCustomer,
+  (req, res) => customerAppointmentController.cancelMyAppointment(req, res),
+);
+
+// Rotas de perfil do cliente
+routes.get(
+  "/client/profile",
+  requireCustomer,
+  (req, res) => customerAppointmentController.getProfile(req, res),
+);
+routes.put(
+  "/client/profile",
+  requireCustomer,
+  (req, res) => customerAppointmentController.updateProfile(req, res),
+);
+routes.post(
+  "/client/profile/photo",
+  requireCustomer,
+  uploadUserPhoto.single("photo"),
+  (req, res) => customerAppointmentController.updateProfilePhoto(req, res),
+);
+routes.delete(
+  "/client/profile",
+  requireCustomer,
+  (req, res) => customerAppointmentController.deleteProfile(req, res),
+);
+
+// ======= ROTAS ADMINISTRATIVAS (APENAS ADMIN/BARBEIRO) =======
+
+// Rota do dashboard (apenas admin)
+routes.get(
+  "/dashboard",
+  requireAdmin,
+  (req, res) => dashboardController.getMetrics(req, res),
+);
 routes.get(
   "/dashboard/customer-ranking",
-  dashboardController.getCustomerRanking,
+  requireAdmin,
+  (req, res) => dashboardController.getCustomerRanking(req, res),
 );
-routes.get("/dashboard/service-ranking", dashboardController.getServiceRanking);
+routes.get(
+  "/dashboard/service-ranking",
+  requireAdmin,
+  (req, res) => dashboardController.getServiceRanking(req, res),
+);
 
 // Rotas de usuários (autenticadas)
 routes.post("/user/change-password", userController.changePassword);
@@ -121,65 +207,149 @@ routes.post(
   userController.updateProfile,
 );
 
-// Rotas de barbeiros
+// Rotas de barbeiros (apenas admin)
 routes.post(
   "/barbers",
+  requireAdmin,
   uploadBarberPhoto.single("photo"),
-  barberController.persist,
+  (req, res) => barberController.persist(req, res),
 );
-routes.get("/barbers", barberController.getAll);
-routes.delete("/barbers/:id", barberController.delete);
-routes.get("/barbers/:id/working-hours", barberController.getWorkingHours);
-routes.put("/barbers/:id/working-hours", barberController.updateWorkingHours);
+routes.get(
+  "/barbers",
+  requireAdmin,
+  (req, res) => barberController.getAll(req, res),
+);
+routes.delete(
+  "/barbers/:id",
+  requireAdmin,
+  (req, res) => barberController.delete(req, res),
+);
+routes.get(
+  "/barbers/:id/working-hours",
+  requireBarber,
+  (req, res) => barberController.getWorkingHours(req, res),
+);
+routes.put(
+  "/barbers/:id/working-hours",
+  requireBarber,
+  (req, res) => barberController.updateWorkingHours(req, res),
+);
 
-// Rotas de serviços
-routes.post("/services", serviceController.persist);
-routes.get("/services", serviceController.getAll);
-routes.delete("/services/:id", serviceController.delete);
+// Rotas de serviços (apenas admin)
+routes.post(
+  "/services",
+  requireAdmin,
+  (req, res) => serviceController.persist(req, res),
+);
+routes.get(
+  "/services",
+  requireAdmin,
+  (req, res) => serviceController.getAll(req, res),
+);
+routes.delete(
+  "/services/:id",
+  requireAdmin,
+  (req, res) => serviceController.delete(req, res),
+);
 
-// Rotas de clientes
-routes.post("/customers", customerController.persist);
-routes.get("/customers", customerController.getAll);
+// Rotas de clientes (apenas admin)
+routes.post(
+  "/customers",
+  requireAdmin,
+  (req, res) => customerController.persist(req, res),
+);
+routes.get(
+  "/customers",
+  requireAdmin,
+  (req, res) => customerController.getAll(req, res),
+);
 routes.get(
   "/customers/search-unlinked-users",
-  customerController.searchUnlinkedUsers,
+  requireAdmin,
+  (req, res) => customerController.searchUnlinkedUsers(req, res),
 );
-routes.get("/customers/:id", customerController.getById);
-routes.delete("/customers/:id", customerController.delete);
-routes.post("/customers/link-user", customerController.linkToUser);
-routes.delete("/customers/:id/unlink-user", customerController.unlinkFromUser);
+routes.get(
+  "/customers/:id",
+  requireAdmin,
+  (req, res) => customerController.getById(req, res),
+);
+routes.delete(
+  "/customers/:id",
+  requireAdmin,
+  (req, res) => customerController.delete(req, res),
+);
+routes.post(
+  "/customers/link-user",
+  requireAdmin,
+  (req, res) => customerController.linkToUser(req, res),
+);
+routes.delete(
+  "/customers/:id/unlink-user",
+  requireAdmin,
+  (req, res) => customerController.unlinkFromUser(req, res),
+);
 
-// Rotas de agendamentos
-routes.post("/appointments", appointmentController.create);
-routes.get("/appointments", appointmentController.getAll);
-routes.get("/appointments/:id", appointmentController.getById);
-routes.put("/appointments/:id", appointmentController.update);
-routes.delete("/appointments/:id", appointmentController.delete);
-routes.put("/appointments/:id/cancel", appointmentController.cancel);
+// Rotas de agendamentos (apenas admin/barbeiro)
+routes.post(
+  "/appointments",
+  requireBarber,
+  (req, res) => appointmentController.create(req, res),
+);
+routes.get(
+  "/appointments",
+  requireBarber,
+  (req, res) => appointmentController.getAll(req, res),
+);
+routes.get(
+  "/appointments/:id",
+  requireBarber,
+  (req, res) => appointmentController.getById(req, res),
+);
+routes.put(
+  "/appointments/:id",
+  requireBarber,
+  (req, res) => appointmentController.update(req, res),
+);
+routes.delete(
+  "/appointments/:id",
+  requireBarber,
+  (req, res) => appointmentController.delete(req, res),
+);
+routes.put(
+  "/appointments/:id/cancel",
+  requireBarber,
+  (req, res) => appointmentController.cancel(req, res),
+);
 routes.post(
   "/appointments/:id/send-reminder",
-  appointmentController.sendReminder,
+  requireBarber,
+  (req, res) => appointmentController.sendReminder(req, res),
 );
 routes.get(
   "/appointments/notification-status",
+  requireBarber,
   (req, res) => appointmentController.getNotificationStatus(req, res),
 );
 routes.get(
   "/appointments/reminder-status",
+  requireBarber,
   (req, res) => reminderController.getStatus(req, res),
 );
 routes.post(
   "/appointments/test-reminders",
+  requireAdmin,
   (req, res) => reminderController.runTest(req, res),
 );
 routes.get(
   "/appointments/date/:date",
+  requireBarber,
   (req, res) => appointmentController.getByDate(req, res),
 );
 
-// Rota para horários disponíveis
+// Rota para horários disponíveis (para painel administrativo)
 routes.get(
   "/appointments/available-slots/:barberId/:date/:serviceDuration",
+  requireBarber,
   async (req, res) => {
     await appointmentController.getAvailableSlots(req, res);
   },
@@ -187,24 +357,58 @@ routes.get(
 
 routes.get(
   "/appointments/calendar/events",
+  requireBarber,
   (req, res) => {
     appointmentController.getCalendarEvents(req, res);
   },
 );
-routes.put("/appointments/:id/move", appointmentController.moveAppointment);
+routes.put(
+  "/appointments/:id/move",
+  requireBarber,
+  (req, res) => appointmentController.moveAppointment(req, res),
+);
 routes.post(
   "/appointments/recurring",
-  appointmentController.createRecurringAppointment,
+  requireBarber,
+  (req, res) => appointmentController.createRecurringAppointment(req, res),
 );
 
 // Rotas de configurações (apenas para admin)
-routes.get("/settings/test", settingsController.test);
-routes.get("/settings", settingsController.getSettings);
-routes.get("/settings/smtp", settingsController.getSmtpConfig);
-routes.put("/settings/smtp", settingsController.updateSmtpConfig);
-routes.post("/settings/smtp/test", settingsController.testSmtpConnection);
-routes.post("/settings/smtp/send-test", settingsController.sendTestEmail);
-routes.post("/settings/initialize", settingsController.initializeSettings);
+routes.get(
+  "/settings/test",
+  requireAdmin,
+  (req, res) => settingsController.test(req, res),
+);
+routes.get(
+  "/settings",
+  requireAdmin,
+  (req, res) => settingsController.getSettings(req, res),
+);
+routes.get(
+  "/settings/smtp",
+  requireAdmin,
+  (req, res) => settingsController.getSmtpConfig(req, res),
+);
+routes.put(
+  "/settings/smtp",
+  requireAdmin,
+  (req, res) => settingsController.updateSmtpConfig(req, res),
+);
+routes.post(
+  "/settings/smtp/test",
+  requireAdmin,
+  (req, res) => settingsController.testSmtpConnection(req, res),
+);
+routes.post(
+  "/settings/smtp/send-test",
+  requireAdmin,
+  (req, res) => settingsController.sendTestEmail(req, res),
+);
+routes.post(
+  "/settings/initialize",
+  requireAdmin,
+  (req, res) => settingsController.initializeSettings(req, res),
+);
 
 routes.post("/auth/logout", authController.logout);
 routes.get("/auth/authenticate", authController.authenticate);
