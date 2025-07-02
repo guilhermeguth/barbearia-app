@@ -46,24 +46,35 @@ tecnologias atuais e interface responsiva.
 
 ```
 barbearia-app/
-├── frontend/           # Aplicação Vue.js + Quasar
+├── admin-panel/        # Painel administrativo (Vue.js + Quasar)
 │   ├── src/
-│   │   ├── components/ # Componentes reutilizáveis
-│   │   ├── layouts/    # Layouts da aplicação
-│   │   ├── pages/      # Páginas/Views
-│   │   ├── router/     # Configuração de rotas
-│   │   ├── stores/     # Gerenciamento de estado (Pinia)
-│   │   └── boot/       # Plugins e configurações
-│   └── package.json
-├── backend/            # API REST em Node.js + TypeScript
+│   │   ├── components/
+│   │   ├── layouts/
+│   │   ├── pages/
+│   │   ├── stores/
+│   │   └── router/
+│   ├── package.json
+│   └── quasar.config.js
+│
+├── customer-app/       # PWA para clientes (Vue.js + Quasar)
 │   ├── src/
-│   │   ├── controllers/# Controladores da API
-│   │   ├── entities/   # Modelos do banco de dados
-│   │   ├── middlewares/# Middlewares do Express
-│   │   ├── repositories/# Repositórios de dados
-│   │   └── routes.ts   # Definição das rotas
-│   └── package.json
-└── README.md          # Este arquivo
+│   │   ├── components/
+│   │   ├── layouts/
+│   │   ├── pages/
+│   │   ├── stores/
+│   │   └── router/
+│   ├── package.json
+│   └── quasar.config.js
+│
+└── backend/            # API REST (Node.js + TypeScript)
+    ├── src/
+    │   ├── controllers/
+    │   ├── entities/
+    │   ├── middlewares/
+    │   ├── routes/
+    │   └── services/
+    ├── package.json
+    └── tsconfig.json
 ```
 
 ## 🚀 Como Executar
@@ -107,20 +118,51 @@ npm run typeorm migration:run
 npm run dev
 ```
 
-### 3. Configure o Frontend
+### 3. Configure o Painel Admin
 
 ```bash
-cd ../frontend
+cd ../admin-panel
 npm install
 npm run dev
 ```
 
-### 4. Acesse a aplicação
+### 4. Configure o PWA Cliente (Opcional)
 
-- **Frontend**: http://localhost:9000
+```bash
+cd ../customer-app
+npm install
+npm run dev
+```
+
+### 5. Acesse a aplicação
+
+- **Painel Admin**: http://localhost:9000
+- **PWA Cliente**: http://localhost:9001 (quando ativo)
 - **Backend API**: http://localhost:3000
 
-## � Credenciais de Teste
+## ⚡ Scripts Úteis do Projeto
+
+Para facilitar o desenvolvimento, use os scripts do package.json raiz:
+
+```bash
+# Instalar todas as dependências
+npm run install:all
+
+# Executar backend
+npm run dev:backend
+
+# Executar painel admin  
+npm run dev:admin
+
+# Executar PWA cliente
+npm run dev:customer
+
+# Build para produção
+npm run build:admin
+npm run build:customer
+```
+
+## 🔑 Credenciais de Teste
 
 Para testar a aplicação, use as credenciais criadas pelos seeds:
 

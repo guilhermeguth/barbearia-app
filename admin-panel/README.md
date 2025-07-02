@@ -1,7 +1,7 @@
-# 🎨 Frontend - Barbearia App
+# 🎨 Painel Administrativo - Barbearia App
 
-Interface moderna e responsiva desenvolvida com Vue 3 e Quasar Framework para o
-sistema de gerenciamento de barbearia.
+Painel administrativo moderno e responsivo desenvolvido com Vue 3 e Quasar Framework 
+para gestão completa de barbearia (barbeiros, agendamentos, clientes e relatórios).
 
 ## 🚀 Tecnologias
 
@@ -89,7 +89,7 @@ npm run lint:fix
 
 ### Variáveis de Ambiente
 
-Crie um arquivo `.env` na raiz do frontend:
+Crie um arquivo `.env` na raiz do admin-panel:
 
 ```env
 # URL da API
