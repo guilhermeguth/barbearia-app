@@ -58,7 +58,9 @@ AppDataSource.initialize().then(async () => {
 
   app.use(errorMiddleware);
 
-  return app.listen(process.env.PORT, () => {
-    console.log(`Server rodando na porta ${process.env.PORT}`);
+  const PORT = process.env.PORT || 3001;
+
+  app.listen(PORT, '0.0.0.0', () => {
+    console.log(`Server rodando na porta ${PORT}`);
   });
 });
