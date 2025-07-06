@@ -6,3 +6,4 @@
 !/uploads/barbers/.gitkeep
 /uploads/users/*
 !/uploads/users/.gitkeep
+/src/migrations/*
