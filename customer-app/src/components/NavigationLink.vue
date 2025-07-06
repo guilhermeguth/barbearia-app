@@ -1,9 +1,9 @@
 <template>
   <q-item 
-    clickable 
     v-ripple 
     :to="route"
     :class="{ 'bg-primary text-white': $route.path === route }"
+    clickable
   >
     <q-item-section avatar>
       <q-icon :name="icon" />

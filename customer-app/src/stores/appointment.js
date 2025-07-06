@@ -23,17 +23,29 @@ export const useAppointmentStore = defineStore('appointment', {
       state.selectedDate && 
       state.selectedTime,
       
-    upcomingAppointments: (state) => 
-      state.myAppointments.filter(apt => 
-        new Date(apt.scheduledDateTime) > new Date() && 
-        apt.status === 'SCHEDULED'
-      ),
+    upcomingAppointments: (state) => {
+      console.log('Verificando agendamentos futuros:', state.myAppointments)
+      return state.myAppointments.filter(apt => {
+        // Verificar se o campo scheduledDateTime existe
+        if (!apt.scheduledDateTime) {
+          console.warn('Agendamento sem data:', apt)
+          return false
+        }
+        
+        const aptDate = new Date(apt.scheduledDateTime)
+        const now = new Date()
+        const isUpcoming = aptDate > now && apt.status === 'scheduled'
+        
+        console.log(`Agendamento ${apt.id}: Data ${aptDate}, Status: ${apt.status}, É futuro: ${isUpcoming}`)
+        return isUpcoming
+      })
+    },
       
     pastAppointments: (state) => 
-      state.myAppointments.filter(apt => 
-        new Date(apt.scheduledDateTime) <= new Date() || 
-        apt.status !== 'SCHEDULED'
-      )
+      state.myAppointments.filter(apt => {
+        if (!apt.scheduledDateTime) return true // Se não tem data, considerar como passado
+        return new Date(apt.scheduledDateTime) <= new Date() || apt.status !== 'scheduled'
+      })
   },
 
   actions: {
@@ -149,9 +161,51 @@ export const useAppointmentStore = defineStore('appointment', {
     async fetchMyAppointments() {
       try {
         this.isLoading = true
+        console.log('Buscando agendamentos do cliente...')
         const response = await api.get('/client/appointments')
-        this.myAppointments = response.data
-        return { success: true }
+        
+        console.log('Agendamentos recebidos do servidor:', response.data)
+        
+        if (response.data && Array.isArray(response.data)) {
+          // Verificar formato dos dados para depuração
+          if (response.data.length > 0) {
+            const firstAppointment = response.data[0]
+            console.log('Exemplo de agendamento:', firstAppointment)
+            console.log('Campos disponíveis:', Object.keys(firstAppointment))
+            console.log('Data do agendamento:', firstAppointment.scheduledDateTime)
+          } else {
+            console.log('Nenhum agendamento retornado pela API')
+          }
+          
+          // Certificar que os objetos de data sejam tratados corretamente
+          this.myAppointments = response.data
+            // Garantir que todos os campos necessários existam
+            .map(apt => ({
+              ...apt,
+              // Garantir que a data seja uma string ISO válida
+              scheduledDateTime: apt.scheduledDateTime ? new Date(apt.scheduledDateTime).toISOString() : null,
+              // Garantir que status exista e mantenha o formato original do backend
+              status: apt.status || 'scheduled',
+              // Garantir que barber e service existam
+              barber: apt.barber || { name: apt.barberName || 'Barbeiro' },
+              service: apt.service || { name: apt.serviceName || 'Serviço' }
+            }))
+            // Filtrar agendamentos sem data
+            .filter(apt => apt.scheduledDateTime)
+          
+          console.log('Após processamento, agendamentos:', this.myAppointments)
+          console.log('Agendamentos futuros:', this.upcomingAppointments)
+          
+          // Forçar a reavaliação dos getters após atualizar os dados
+          setTimeout(() => {
+            console.log('Agendamentos futuros (após timeout):', this.upcomingAppointments)
+          }, 100)
+        } else {
+          console.error('Resposta da API inválida:', response.data)
+          this.myAppointments = []
+        }
+        
+        return { success: true, data: this.myAppointments }
       } catch (error) {
         console.error('Erro ao buscar agendamentos:', error)
         return { 
@@ -172,7 +226,7 @@ export const useAppointmentStore = defineStore('appointment', {
         // Atualizar o agendamento na lista local
         const index = this.myAppointments.findIndex(apt => apt.id === appointmentId)
         if (index !== -1) {
-          this.myAppointments[index].status = 'CANCELLED'
+          this.myAppointments[index].status = 'cancelled'
         }
         
         return { 

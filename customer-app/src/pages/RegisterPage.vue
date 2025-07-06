@@ -7,7 +7,7 @@
     </div>
 
     <!-- Formulário de Registro -->
-    <q-form @submit="handleRegister" class="q-gutter-md">
+    <q-form class="q-gutter-md" @submit="handleRegister">
       <!-- Nome -->
       <q-input
         v-model="form.name"
@@ -19,7 +19,7 @@
           val => val.length >= 2 || 'Nome deve ter pelo menos 2 caracteres'
         ]"
       >
-        <template v-slot:prepend>
+        <template #prepend>
           <q-icon name="person" />
         </template>
       </q-input>
@@ -36,7 +36,7 @@
           val => /.+@.+\..+/.test(val) || 'E-mail inválido'
         ]"
       >
-        <template v-slot:prepend>
+        <template #prepend>
           <q-icon name="email" />
         </template>
       </q-input>
@@ -53,10 +53,10 @@
           val => val.length >= 6 || 'Senha deve ter pelo menos 6 caracteres'
         ]"
       >
-        <template v-slot:prepend>
+        <template #prepend>
           <q-icon name="lock" />
         </template>
-        <template v-slot:append>
+        <template #append>
           <q-icon
             :name="showPassword ? 'visibility_off' : 'visibility'"
             class="cursor-pointer"
@@ -77,10 +77,10 @@
           val => val === form.password || 'Senhas não coincidem'
         ]"
       >
-        <template v-slot:prepend>
+        <template #prepend>
           <q-icon name="lock" />
         </template>
-        <template v-slot:append>
+        <template #append>
           <q-icon
             :name="showConfirmPassword ? 'visibility_off' : 'visibility'"
             class="cursor-pointer"
@@ -112,8 +112,8 @@
         flat
         label="Fazer login"
         color="primary"
-        @click="goToLogin"
         class="text-weight-medium"
+        @click="goToLogin"
       />
     </div>
   </div>
@@ -122,11 +122,12 @@
 <script setup>
 import { ref, reactive } from 'vue'
 import { useRouter } from 'vue-router'
-import { Notify } from 'quasar'
 import { useAuthStore } from 'src/stores'
+import { useNotify } from 'src/composables/useNotify'
 
 const router = useRouter()
 const authStore = useAuthStore()
+const { notifySuccess, notifyError } = useNotify()
 
 const showPassword = ref(false)
 const showConfirmPassword = ref(false)
@@ -146,18 +147,10 @@ async function handleRegister() {
   })
   
   if (result.success) {
-    Notify.create({
-      type: 'positive',
-      message: 'Conta criada com sucesso!',
-      position: 'top'
-    })
+    notifySuccess('Conta criada com sucesso!')
     router.push('/')
   } else {
-    Notify.create({
-      type: 'negative',
-      message: result.message,
-      position: 'top'
-    })
+    notifyError(result.message)
   }
 }
 

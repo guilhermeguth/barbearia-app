@@ -81,6 +81,14 @@ export const useAuthStore = defineStore('auth', {
         localStorage.setItem('token', token)
         localStorage.setItem('user', JSON.stringify(user))
 
+        // Tentar carregar dados completos do usuário (incluindo foto)
+        try {
+          await this.loadUser()
+        } catch (error) {
+          console.warn('Falha ao carregar dados completos do usuário após login:', error)
+          // Não falhar o login se não conseguir carregar dados completos
+        }
+
         return { success: true }
       } catch (error) {
         console.error('Erro no login:', error)
@@ -178,6 +186,77 @@ export const useAuthStore = defineStore('auth', {
         console.error('Erro na verificação de autenticação:', error)
         this.logout()
         return false
+      }
+    },
+
+    // Carregar dados do usuário
+    async loadUser() {
+      try {
+        const response = await api.get('/auth/authenticate')
+        
+        // Garantir que temos todos os campos necessários
+        const userData = response.data.user
+        
+        // Se o usuário já existia na store, manter qualquer campo que não foi retornado pela API
+        if (this.user && userData) {
+          // Preservar campos importantes como a foto, se não estiverem presentes no retorno da API
+          if (this.user.photo && !userData.photo && !userData.photoUrl) {
+            userData.photo = this.user.photo
+          }
+          
+          // Se a API retornar photoUrl, garantir que photo também seja atualizado para compatibilidade
+          if (!userData.photo && userData.photoUrl) {
+            userData.photo = userData.photoUrl
+          }
+          
+          // Fazer o mesmo com photoUrl
+          if (!userData.photoUrl && userData.photo) {
+            userData.photoUrl = userData.photo
+          }
+        }
+        
+        // Log para debug
+        console.log('Dados carregados do servidor:', userData)
+        console.log('Foto do usuário:', userData.photo || userData.photoUrl)
+        
+        this.user = userData
+        this.isAuthenticated = true
+        
+        // Atualizar dados no localStorage
+        localStorage.setItem('user', JSON.stringify(userData))
+        console.log('Usuário atualizado na store após loadUser:', userData)
+        
+        return userData
+      } catch (error) {
+        console.error('Erro ao carregar dados do usuário:', error)
+        this.logout()
+        throw error
+      }
+    },
+
+    // Atualizar dados do usuário na store (útil quando perfil é modificado)
+    updateUser(userData) {
+      if (userData) {
+        // Mesclar dados novos com os existentes
+        this.user = { ...this.user, ...userData }
+        
+        // Atualizar localStorage
+        localStorage.setItem('user', JSON.stringify(this.user))
+        
+        console.log('Dados do usuário atualizados:', this.user)
+      }
+    },
+
+    // Atualizar foto do usuário especificamente
+    updateUserPhoto(photoUrl) {
+      if (this.user) {
+        this.user.photo = photoUrl
+        this.user.photoUrl = photoUrl
+        
+        // Atualizar localStorage
+        localStorage.setItem('user', JSON.stringify(this.user))
+        
+        console.log('Foto do usuário atualizada:', photoUrl)
       }
     }
   }

@@ -104,17 +104,17 @@
 
         <q-card-actions align="right">
           <q-btn 
+            v-close-popup
             flat 
             label="Manter" 
             color="grey-7" 
-            v-close-popup 
           />
           <q-btn 
             unelevated 
             label="Cancelar" 
             color="negative" 
-            @click="confirmCancel"
             :loading="cancelling"
+            @click="confirmCancel"
           />
         </q-card-actions>
       </q-card>
@@ -172,7 +172,7 @@ export default defineComponent({
         $q.notify({
           type: 'negative',
           message: 'Erro ao carregar agendamentos',
-          position: 'top'
+          position: 'bottom'
         })
       } finally {
         loading.value = false
@@ -195,7 +195,7 @@ export default defineComponent({
         $q.notify({
           type: 'positive',
           message: 'Agendamento cancelado com sucesso',
-          position: 'top'
+          position: 'bottom'
         })
         
         showCancelDialog.value = false
@@ -209,7 +209,7 @@ export default defineComponent({
         $q.notify({
           type: 'negative',
           message: error.response?.data?.message || 'Erro ao cancelar agendamento',
-          position: 'top'
+          position: 'bottom'
         })
       } finally {
         cancelling.value = false

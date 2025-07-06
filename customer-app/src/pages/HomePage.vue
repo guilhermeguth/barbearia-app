@@ -42,19 +42,31 @@
     </div>
 
     <!-- Próximos agendamentos -->
-    <div v-if="upcomingAppointments.length > 0" class="q-mb-lg">
+    <div v-if="visibleAppointments.length > 0" class="q-mb-lg">
       <div class="text-h6 text-weight-bold text-grey-8 q-mb-md">
-        Próximos Agendamentos
+        {{ displayedAppointmentsTitle }}
       </div>
       
       <div class="q-gutter-md">
         <div 
-          v-for="appointment in upcomingAppointments.slice(0, 2)" 
+          v-for="appointment in visibleAppointments.slice(0, 2)" 
           :key="appointment.id"
           class="q-mb-md"
         >
-          <AppointmentCard :appointment="appointment" show-actions />
+          <AppointmentCard :appointment="appointment" :show-actions="false" />
         </div>
+      </div>
+      
+      <div v-if="hasMoreAppointments" class="text-center q-mt-md">
+        <q-btn 
+          color="primary" 
+          outline
+          label="Ver todos" 
+          size="sm"
+          class="q-px-md"
+          icon-right="chevron_right"
+          @click="goToMyAppointments"
+        />
       </div>
     </div>
 
@@ -68,9 +80,9 @@
       <q-btn 
         color="primary" 
         label="Agendar agora" 
-        @click="goToNewAppointment"
         rounded
         unelevated
+        @click="goToNewAppointment"
       />
     </div>
   </q-page>
@@ -87,7 +99,34 @@ const authStore = useAuthStore()
 const appointmentStore = useAppointmentStore()
 
 // Computed
-const upcomingAppointments = computed(() => appointmentStore.upcomingAppointments)
+// Exibir todos os agendamentos se não houver futuros
+const visibleAppointments = computed(() => {
+  // Se houver agendamentos futuros, mostrar eles
+  if (appointmentStore.upcomingAppointments && appointmentStore.upcomingAppointments.length > 0) {
+    return appointmentStore.upcomingAppointments
+  }
+  
+  // Caso contrário, mostrar todos os agendamentos, ordenados pela data (mais recentes primeiro)
+  return [...appointmentStore.myAppointments].sort((a, b) => {
+    // Ordenar por data agendada, com os mais recentes primeiro
+    const dateA = new Date(a.scheduledDateTime || 0)
+    const dateB = new Date(b.scheduledDateTime || 0)
+    return dateB - dateA
+  }).filter(apt => apt.scheduledDateTime) // Garantir que só mostre agendamentos com data
+})
+
+// Determinar o título adequado dependendo dos agendamentos mostrados
+const displayedAppointmentsTitle = computed(() => {
+  if (appointmentStore.upcomingAppointments && appointmentStore.upcomingAppointments.length > 0) {
+    return 'Próximos Agendamentos'
+  }
+  return 'Seus Agendamentos'
+})
+
+// Verificar se há mais agendamentos do que os exibidos
+const hasMoreAppointments = computed(() => {
+  return appointmentStore.myAppointments.length > 2
+})
 
 // Methods
 function goToNewAppointment() {
@@ -98,10 +137,46 @@ function goToMyAppointments() {
   router.push('/appointments')
 }
 
+// Método para garantir que os dados estejam atualizados
+async function forceRefreshAppointments() {
+  console.log('Forçando atualização de agendamentos...')
+  
+  try {
+    // Buscar dados mais recentes
+    const result = await appointmentStore.fetchMyAppointments()
+    console.log('Resultado da busca de agendamentos:', result)
+    
+    // Mostrar informações de diagnóstico
+    if (result.data && result.data.length > 0) {
+      console.log(`Foram carregados ${result.data.length} agendamentos no total`)
+      console.log(`Agendamentos futuros: ${appointmentStore.upcomingAppointments.length}`)
+      console.log(`Agendamentos visíveis: ${visibleAppointments.value.length}`)
+      
+      if (visibleAppointments.value.length > 0) {
+        console.log('Primeiro agendamento visível:', visibleAppointments.value[0])
+      }
+    } else {
+      console.log('Nenhum agendamento carregado do servidor')
+    }
+  } catch (error) {
+    console.error('Erro ao atualizar agendamentos:', error)
+  }
+}
+
 // Lifecycle
 onMounted(async () => {
+  console.log('HomePage montada, carregando agendamentos...')
+  
   // Carregar agendamentos do usuário
-  await appointmentStore.fetchMyAppointments()
+  await forceRefreshAppointments()
+  
+  // Tentar novamente após um pequeno delay (para garantir que os dados estejam disponíveis)
+  setTimeout(async () => {
+    if (visibleAppointments.value.length === 0 && appointmentStore.myAppointments.length > 0) {
+      console.log('Tentando atualizar agendamentos novamente após delay...')
+      await forceRefreshAppointments()
+    }
+  }, 500)
 })
 </script>
 

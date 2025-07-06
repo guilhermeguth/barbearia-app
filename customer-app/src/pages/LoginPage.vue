@@ -7,7 +7,7 @@
     </div>
 
     <!-- Formulário de Login -->
-    <q-form @submit="handleLogin" class="q-gutter-md">
+    <q-form class="q-gutter-md" @submit="handleLogin">
       <!-- Email -->
       <q-input
         v-model="form.email"
@@ -20,7 +20,7 @@
           val => /.+@.+\..+/.test(val) || 'E-mail inválido'
         ]"
       >
-        <template v-slot:prepend>
+        <template #prepend>
           <q-icon name="email" />
         </template>
       </q-input>
@@ -37,10 +37,10 @@
           val => val.length >= 6 || 'Senha deve ter pelo menos 6 caracteres'
         ]"
       >
-        <template v-slot:prepend>
+        <template #prepend>
           <q-icon name="lock" />
         </template>
-        <template v-slot:append>
+        <template #append>
           <q-icon
             :name="showPassword ? 'visibility_off' : 'visibility'"
             class="cursor-pointer"
@@ -72,8 +72,8 @@
         flat
         label="Criar conta"
         color="primary"
-        @click="goToRegister"
         class="text-weight-medium"
+        @click="goToRegister"
       />
     </div>
   </div>

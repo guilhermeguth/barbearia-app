@@ -62,8 +62,8 @@
           icon="cancel"
           label="Cancelar"
           size="sm"
-          @click="$emit('cancel', appointment)"
           class="cancel-btn"
+          @click="$emit('cancel', appointment)"
         />
       </div>
     </q-card-section>
@@ -114,8 +114,8 @@
             color="negative" 
             icon="cancel"
             size="xs"
-            @click="$emit('cancel', appointment)"
             class="mobile-cancel-btn"
+            @click="$emit('cancel', appointment)"
           />
         </div>
       </div>
@@ -190,13 +190,14 @@ export default defineComponent({
     },
 
     getStatusColor(status) {
+      const statusLower = status ? status.toLowerCase() : '';
       const colors = {
         'scheduled': 'primary',
         'in_progress': 'orange',
         'completed': 'positive',
         'cancelled': 'negative'
       }
-      return colors[status] || 'grey'
+      return colors[statusLower] || 'grey'
     },
 
     getStatusTextColor() {
@@ -204,23 +205,25 @@ export default defineComponent({
     },
 
     getStatusLabel(status) {
+      const statusLower = status ? status.toLowerCase() : '';
       const labels = {
         'scheduled': 'Agendado',
         'in_progress': 'Em andamento',
         'completed': 'Concluído',
         'cancelled': 'Cancelado'
       }
-      return labels[status] || status
+      return labels[statusLower] || status
     },
 
     getStatusIcon(status) {
+      const statusLower = status ? status.toLowerCase() : '';
       const icons = {
         'scheduled': 'event',
         'in_progress': 'schedule',
         'completed': 'check_circle',
         'cancelled': 'cancel'
       }
-      return icons[status] || 'help'
+      return icons[statusLower] || 'help'
     }
   }
 })

@@ -9,6 +9,7 @@
 import { clientsClaim } from 'workbox-core'
 import { precacheAndRoute, cleanupOutdatedCaches, createHandlerBoundToURL } from 'workbox-precaching'
 import { registerRoute, NavigationRoute } from 'workbox-routing'
+import { StaleWhileRevalidate, CacheFirst } from 'workbox-strategies'
 
 self.skipWaiting()
 clientsClaim()
@@ -17,6 +18,22 @@ clientsClaim()
 precacheAndRoute(self.__WB_MANIFEST)
 
 cleanupOutdatedCaches()
+
+// Cache API calls
+registerRoute(
+  ({ url }) => url.pathname.startsWith('/api/'),
+  new StaleWhileRevalidate({
+    cacheName: 'api-cache',
+  })
+)
+
+// Cache images
+registerRoute(
+  ({ request }) => request.destination === 'image',
+  new CacheFirst({
+    cacheName: 'images-cache',
+  })
+)
 
 // Non-SSR fallbacks to index.html
 // Production SSR fallbacks to offline.html (except for dev)

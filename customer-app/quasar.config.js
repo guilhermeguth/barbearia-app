@@ -42,7 +42,7 @@ export default defineConfig((/* ctx */) => {
         node: 'node20'
       },
 
-      vueRouterMode: 'hash', // available values: 'hash', 'history'
+      vueRouterMode: 'history', // Para melhor experiência do PWA, recomenda-se usar 'history'
       // vueRouterBase,
       // vueDevtools,
       // vueOptionsAPI: false,
@@ -73,7 +73,9 @@ export default defineConfig((/* ctx */) => {
 
     // Full list of options: https://v2.quasar.dev/quasar-cli-vite/quasar-config-file#devserver
     devServer: {
-      // https: true,
+      https: true,
+      host: '0.0.0.0', // Permite acesso de outros dispositivos na rede
+      port: 9000,
       open: true // opens browser window automatically
     },
 
@@ -131,7 +133,7 @@ export default defineConfig((/* ctx */) => {
       // manualStoreHydration: true,
       // manualPostHydrationTrigger: true,
 
-      pwa: false
+      pwa: true // Habilitar PWA no build
       // pwaOfflineHtmlFilename: 'offline.html', // do NOT use index.html as name!
 
       // pwaExtendGenerateSWOptions (cfg) {},
@@ -140,15 +142,12 @@ export default defineConfig((/* ctx */) => {
 
     // https://v2.quasar.dev/quasar-cli-vite/developing-pwa/configuring-pwa
     pwa: {
-      workboxMode: 'GenerateSW' // 'GenerateSW' or 'InjectManifest'
-      // swFilename: 'sw.js',
-      // manifestFilename: 'manifest.json',
-      // extendManifestJson (json) {},
-      // useCredentialsForManifestTag: true,
-      // injectPwaMetaTags: false,
-      // extendPWACustomSWConf (esbuildConf) {},
-      // extendGenerateSWOptions (cfg) {},
-      // extendInjectManifestOptions (cfg) {}
+      workboxMode: 'InjectManifest',
+      injectPwaMetaTags: true,
+      swFilename: 'sw.js',
+      manifestFilename: 'manifest.json',
+      useCredentialsForManifestTag: false,
+      useFilenameHashing: true
     },
 
     // Full list of options: https://v2.quasar.dev/quasar-cli-vite/developing-cordova-apps/configuring-cordova

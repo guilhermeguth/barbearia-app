@@ -28,7 +28,7 @@ export default defineRouter(function () {
   })
 
   // Guard de autenticação
-  Router.beforeEach((to, _from, next) => {
+  Router.beforeEach(async (to, _from, next) => {
     const authStore = useAuthStore()
     
     // Verificar se a rota requer autenticação
@@ -46,6 +46,13 @@ export default defineRouter(function () {
       // Se tem token mas a store não está marcada como autenticada, inicializar
       if (!authStore.isAuthenticated && token) {
         authStore.initAuth()
+        
+        // Tentar carregar dados completos do usuário para garantir que a foto seja carregada
+        try {
+          await authStore.loadUser()
+        } catch (error) {
+          console.warn('Falha ao carregar dados do usuário no router guard:', error)
+        }
       }
     }
     

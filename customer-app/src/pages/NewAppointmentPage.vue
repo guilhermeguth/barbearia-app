@@ -13,8 +13,8 @@
 
     <!-- Stepper para processo de agendamento -->
     <q-stepper
-      v-model="step"
       ref="stepper"
+      v-model="step"
       color="primary"
       animated
       flat
@@ -62,11 +62,11 @@
                 <!-- Informações do barbeiro -->
                 <div class="col">
                   <div class="text-h6 text-weight-medium">{{ barber.name }}</div>
-                  <div class="text-body2 text-grey-6" v-if="barber.specialties">
+                  <div v-if="barber.specialties" class="text-body2 text-grey-6">
                     <q-icon name="star" size="16px" class="q-mr-xs" />
                     {{ barber.specialties }}
                   </div>
-                  <div class="text-body2 text-grey-7" v-else>
+                  <div v-else class="text-body2 text-grey-7">
                     Barbeiro profissional
                   </div>
                 </div>
@@ -88,9 +88,9 @@
           <q-btn 
             color="primary" 
             label="Próximo" 
-            @click="nextStep"
             :disable="!selectedBarber"
             unelevated
+            @click="nextStep"
           />
         </div>
       </q-step>
@@ -134,7 +134,7 @@
                     <q-icon name="schedule" size="16px" class="q-mr-xs" />
                     {{ service.duration }} minutos
                   </div>
-                  <div class="text-body2 text-grey-7" v-if="service.description">
+                  <div v-if="service.description" class="text-body2 text-grey-7">
                     {{ service.description }}
                   </div>
                 </div>
@@ -169,8 +169,8 @@
           <q-btn 
             color="primary" 
             label="Próximo" 
-            @click="nextStep"
             :disable="!selectedService"
+            @click="nextStep"
           />
         </div>
       </q-step>
@@ -207,8 +207,8 @@
           <q-btn 
             color="primary" 
             label="Próximo" 
-            @click="nextStep"
             :disable="!selectedDate"
+            @click="nextStep"
           />
         </div>
       </q-step>
@@ -247,8 +247,8 @@
             :color="selectedTime === slot ? 'primary' : 'grey-4'"
             :text-color="selectedTime === slot ? 'white' : 'grey-8'"
             class="time-slot-btn"
-            @click="selectTime(slot)"
             no-caps
+            @click="selectTime(slot)"
           />
         </div>
 
@@ -262,8 +262,8 @@
           <q-btn 
             color="primary" 
             label="Próximo" 
-            @click="nextStep"
             :disable="!selectedTime"
+            @click="nextStep"
           />
         </div>
       </q-step>
@@ -279,7 +279,7 @@
         <q-card flat bordered class="confirmation-card">
           <q-card-section class="confirmation-section">
             <!-- Avatar do barbeiro no topo -->
-            <div class="text-center barber-header" v-if="selectedBarber">
+            <div v-if="selectedBarber" class="text-center barber-header">
               <q-avatar size="60px" color="primary" text-color="white" class="barber-avatar">
                 <img v-if="selectedBarber.photoUrl" :src="getBarberPhotoUrl(selectedBarber.photoUrl)" :alt="selectedBarber.name" />
                 <q-icon v-else name="person" size="30px" />
@@ -346,9 +346,9 @@
           <q-btn 
             color="primary" 
             label="Confirmar Agendamento" 
-            @click="confirmAppointment"
             :loading="appointmentStore.isLoading"
             :disable="appointmentStore.isLoading"
+            @click="confirmAppointment"
           />
         </div>
       </q-step>
@@ -359,13 +359,13 @@
 <script setup>
 import { ref, computed, onMounted, watch } from 'vue'
 import { useRouter } from 'vue-router'
-import { useQuasar } from 'quasar'
 import { useAppointmentStore } from 'src/stores'
+import { useNotify } from 'src/composables/useNotify'
 import { api } from 'src/boot/axios'
 
 const router = useRouter()
-const $q = useQuasar()
 const appointmentStore = useAppointmentStore()
+const { notifySuccess, notifyError } = useNotify()
 
 // State
 const step = ref(1)
@@ -439,18 +439,10 @@ async function confirmAppointment() {
   const result = await appointmentStore.createAppointment(notes.value)
   
   if (result.success) {
-    $q.notify({
-      type: 'positive',
-      message: 'Agendamento criado com sucesso!',
-      position: 'top'
-    })
+    notifySuccess('Agendamento criado com sucesso!')
     router.push('/appointments')
   } else {
-    $q.notify({
-      type: 'negative',
-      message: result.message,
-      position: 'top'
-    })
+    notifyError(result.message)
   }
 }
 

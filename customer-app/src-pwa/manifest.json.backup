@@ -1,0 +1,84 @@
+{
+  "name": "Barbearia App - Agendamento",
+  "short_name": "Barbearia",
+  "description": "Aplicativo para agendamento de horários na barbearia",
+  "display": "standalone",
+  "display_override": ["standalone", "minimal-ui"],
+  "start_url": "/",
+  "scope": "/",
+  "orientation": "portrait-primary",
+  "background_color": "#ffffff",
+  "theme_color": "#1976d2",
+  "categories": ["business", "lifestyle"],
+  "lang": "pt-BR",
+  "prefer_related_applications": false,
+  "edge_side_panel": {
+    "preferred_width": 400
+  },
+  "shortcuts": [
+    {
+      "name": "Novo Agendamento",
+      "short_name": "Agendar",
+      "description": "Criar um novo agendamento",
+      "url": "/new-appointment",
+      "icons": [
+        {
+          "src": "icons/icon-192x192.png",
+          "sizes": "192x192",
+          "type": "image/png"
+        }
+      ]
+    },
+    {
+      "name": "Meus Agendamentos",
+      "short_name": "Agendamentos", 
+      "description": "Ver meus agendamentos",
+      "url": "/my-appointments",
+      "icons": [
+        {
+          "src": "icons/icon-192x192.png",
+          "sizes": "192x192",
+          "type": "image/png"
+        }
+      ]
+    }
+  ],
+  "icons": [
+    {
+      "src": "icons/icon-128x128.png",
+      "sizes": "128x128",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/icon-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/icon-256x256.png",
+      "sizes": "256x256",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/icon-384x384.png",
+      "sizes": "384x384",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/icon-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "icons/icon-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}

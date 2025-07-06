@@ -2,23 +2,34 @@ const routes = [
   // Rotas públicas (sem autenticação)
   {
     path: '/login', 
-    name: 'login',
     component: () => import('layouts/AuthLayout.vue'),
     children: [
       { 
         path: '', 
+        name: 'login',
         component: () => import('pages/LoginPage.vue') 
       }
     ]
   },
   {
     path: '/register', 
-    name: 'register',
     component: () => import('layouts/AuthLayout.vue'),
     children: [
       { 
         path: '', 
+        name: 'register',
         component: () => import('pages/RegisterPage.vue') 
+      }
+    ]
+  },
+  {
+    path: '/reset-password', 
+    component: () => import('layouts/AuthLayout.vue'),
+    children: [
+      { 
+        path: '', 
+        name: 'reset-password',
+        component: () => import('pages/ResetPasswordPage.vue') 
       }
     ]
   },

@@ -32,7 +32,7 @@ export default [
    * pluginVue.configs["flat/recommended"]
    *   -> Above, plus rules to enforce subjective community defaults to ensure consistency.
    */
-  ...pluginVue.configs[ 'flat/essential' ],
+  ...pluginVue.configs[ 'flat/recommended' ],
 
   {
     languageOptions: {
@@ -54,6 +54,17 @@ export default [
     // add your custom rules here
     rules: {
       'prefer-promise-reject-errors': 'off',
+      
+      // Configuração para variáveis não utilizadas
+      // Mais rigoroso que a configuração anterior, mas ainda permite variáveis
+      // usadas apenas em templates Vue
+      'no-unused-vars': ['warn', { 
+        'varsIgnorePattern': '^_', // Ignora variáveis que começam com underscore
+        'argsIgnorePattern': '^_' // Ignora argumentos que começam com underscore 
+      }],
+      
+      // Esta regra específica do Vue entende variáveis usadas em templates
+      'vue/script-setup-uses-vars': 'error',
 
       // allow debugger during development only
       'no-debugger': process.env.NODE_ENV === 'production' ? 'error' : 'off'
