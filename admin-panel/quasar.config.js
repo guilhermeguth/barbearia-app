@@ -6,11 +6,13 @@ import { defineConfig } from '#q-app/wrappers'
 export default defineConfig((/* ctx */) => {
   return {
     boot: [
-      'axios'
+      'axios',
+      'settings'
     ],
 
     css: [
-      'app.scss'
+      'app.scss',
+      'dynamic-theme.css'
     ],
 
     extras: [

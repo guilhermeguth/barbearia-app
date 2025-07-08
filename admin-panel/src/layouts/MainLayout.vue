@@ -12,7 +12,7 @@
         />
 
         <q-toolbar-title>
-          Barbearia App
+          {{ businessName }} - Admin
         </q-toolbar-title>
 
         <!-- Botão de toggle do tema -->
@@ -55,7 +55,7 @@
       <!-- Menu Links Container -->
       <div class="drawer-content">
         <q-list class="q-pt-sm drawer-menu-list">
-          <q-item to="/dashboard" clickable v-ripple exact-active-class="bg-primary text-white">
+          <q-item to="/dashboard" clickable v-ripple exact>
             <q-item-section avatar>
               <q-icon name="dashboard" />
             </q-item-section>
@@ -63,8 +63,7 @@
               <q-item-label>Dashboard</q-item-label>
             </q-item-section>
           </q-item>
-          
-          <q-item to="/agendamentos" clickable v-ripple exact-active-class="bg-primary text-white">
+          <q-item to="/agendamentos" clickable v-ripple exact>
             <q-item-section avatar>
               <q-icon name="calendar_month" />
             </q-item-section>
@@ -72,8 +71,7 @@
               <q-item-label>Calendário</q-item-label>
             </q-item-section>
           </q-item>
-          
-          <q-item to="/barbeiros" clickable v-ripple exact-active-class="bg-primary text-white">
+          <q-item to="/barbeiros" clickable v-ripple exact>
             <q-item-section avatar>
               <q-icon name="person" />
             </q-item-section>
@@ -81,8 +79,7 @@
               <q-item-label>Barbeiros</q-item-label>
             </q-item-section>
           </q-item>
-          
-          <q-item to="/servicos" clickable v-ripple exact-active-class="bg-primary text-white">
+          <q-item to="/servicos" clickable v-ripple exact>
             <q-item-section avatar>
               <q-icon name="content_cut" />
             </q-item-section>
@@ -90,8 +87,7 @@
               <q-item-label>Serviços</q-item-label>
             </q-item-section>
           </q-item>
-          
-          <q-item to="/clientes" clickable v-ripple exact-active-class="bg-primary text-white">
+          <q-item to="/clientes" clickable v-ripple exact>
             <q-item-section avatar>
               <q-icon name="people" />
             </q-item-section>
@@ -99,8 +95,7 @@
               <q-item-label>Clientes</q-item-label>
             </q-item-section>
           </q-item>
-          
-          <q-item to="/relatorios" clickable v-ripple exact-active-class="bg-primary text-white">
+          <q-item to="/relatorios" clickable v-ripple exact>
             <q-item-section avatar>
               <q-icon name="analytics" />
             </q-item-section>
@@ -108,8 +103,7 @@
               <q-item-label>Relatórios</q-item-label>
             </q-item-section>
           </q-item>
-
-          <q-item to="/configuracoes" clickable v-ripple exact-active-class="bg-primary text-white">
+          <q-item to="/configuracoes" clickable v-ripple exact>
             <q-item-section avatar>
               <q-icon name="settings" />
             </q-item-section>
@@ -377,12 +371,13 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, nextTick, onMounted } from 'vue'
 import { useQuasar, Notify, Loading } from 'quasar'
 import { useAuthStore } from 'src/stores/auth'
 import { useRouter } from 'vue-router'
 import { api } from 'src/boot/axios'
 import { useSessionManager } from 'src/composables/useSessionManager'
+import { useSettings } from 'src/composables/useSettings'
 
 const $q = useQuasar()
 const authStore = useAuthStore()
@@ -391,7 +386,8 @@ const router = useRouter()
 // Session manager para controlar expiração
 const sessionManager = useSessionManager()
 
-const leftDrawerOpen = ref(false)
+// Configurações dinâmicas
+const { businessName } = useSettings()
 
 // Estados para alteração de senha
 const showChangePasswordDialog = ref(false)
@@ -432,32 +428,6 @@ const isProfileFormValid = computed(() => {
          profileForm.value.email &&
          profileForm.value.email.includes('@')
 })
-
-function toggleLeftDrawer() {
-  console.log('Toggle menu clicked!', leftDrawerOpen.value)
-  leftDrawerOpen.value = !leftDrawerOpen.value
-  console.log('New state:', leftDrawerOpen.value)
-}
-
-function toggleTheme() {
-  $q.dark.toggle()
-  
-  // Salvar preferência no localStorage
-  localStorage.setItem('darkMode', $q.dark.isActive.toString())
-  
-  Notify.create({
-    type: 'positive',
-    message: `Tema ${$q.dark.isActive ? 'escuro' : 'claro'} ativado`,
-    position: 'bottom-right',
-    icon: $q.dark.isActive ? 'dark_mode' : 'light_mode',
-    timeout: 1500
-  })
-}
-
-// Funções para alteração de senha
-function openChangePasswordDialog() {
-  showChangePasswordDialog.value = true
-}
 
 function closeChangePasswordDialog() {
   showChangePasswordDialog.value = false
@@ -514,16 +484,8 @@ async function changePassword() {
   }
 }
 
-// Funções para perfil
-function openProfileDialog() {
-  // Carregar dados atuais do usuário
-  profileForm.value = {
-    name: authStore.user?.name || '',
-    email: authStore.user?.email || '',
-    photoFile: null,
-    photoPreview: authStore.user?.photoUrl || null // Mostrar foto atual se existir
-  }
-  showProfileDialog.value = true
+function openChangePasswordDialog() {
+  showChangePasswordDialog.value = true
 }
 
 function closeProfileDialog() {
@@ -536,9 +498,18 @@ function closeProfileDialog() {
   }
 }
 
+function openProfileDialog() {
+  profileForm.value = {
+    name: authStore.user?.name || '',
+    email: authStore.user?.email || '',
+    photoFile: null,
+    photoPreview: authStore.user?.photoUrl || null
+  }
+  showProfileDialog.value = true
+}
+
 function onProfilePhotoSelected(file) {
   if (file) {
-    // Criar preview da imagem
     const reader = new FileReader()
     reader.onload = (e) => {
       profileForm.value.photoPreview = e.target.result
@@ -583,28 +554,21 @@ async function updateProfile() {
   updatingProfile.value = true
 
   try {
-    // Criar FormData para envio do arquivo
     const formData = new FormData()
     formData.append('name', profileForm.value.name)
     formData.append('email', profileForm.value.email)
-    
-    // Adicionar foto se selecionada
     if (profileForm.value.photoFile) {
       formData.append('photo', profileForm.value.photoFile)
     }
-
     const response = await api.post('/user/profile', formData, {
       headers: {
         'Content-Type': 'multipart/form-data'
       }
     })
-
-    // Atualizar dados no store diretamente com a resposta
     if (response.data.user) {
       authStore.user = response.data.user
       localStorage.setItem('user_data', JSON.stringify(response.data.user))
     }
-
     Notify.create({
       type: 'positive',
       message: 'Perfil atualizado com sucesso!',
@@ -612,12 +576,9 @@ async function updateProfile() {
       icon: 'check_circle',
       timeout: 3000
     })
-
     closeProfileDialog()
-
   } catch (error) {
     console.error('Erro ao atualizar perfil:', error)
-    
     Notify.create({
       type: 'negative',
       message: error.response?.data?.message || 'Erro ao atualizar perfil',
@@ -631,16 +592,9 @@ async function updateProfile() {
 }
 
 async function handleLogout() {
-  console.log('Iniciando processo de logout...')
-  
   try {
-    // Mostrar loading
-    Loading.show({
-      message: 'Fazendo logout...'
-    })
-    
+    Loading.show({ message: 'Fazendo logout...' })
     await authStore.logout()
-    
     Notify.create({
       type: 'positive',
       message: 'Logout realizado com sucesso!',
@@ -648,12 +602,8 @@ async function handleLogout() {
       icon: 'check_circle',
       timeout: 2000
     })
-    
-    console.log('Redirecionando para página de login...')
     router.push('/login')
-    
-  } catch (error) {
-    console.error('Erro no logout:', error)
+  } catch {
     Notify.create({
       type: 'negative',
       message: 'Erro ao fazer logout',
@@ -661,12 +611,22 @@ async function handleLogout() {
       icon: 'error',
       timeout: 3000
     })
-    
-    // Mesmo com erro, redirecionar para login
     router.push('/login')
   } finally {
     Loading.hide()
   }
+}
+
+// Função para alternar tema claro/escuro
+function toggleTheme() {
+  $q.dark.toggle()
+  localStorage.setItem('darkMode', $q.dark.isActive ? 'true' : 'false')
+  // Reaplicar cor primária após troca de tema
+  nextTick(() => {
+    // Forçar novamente após um pequeno delay para garantir que o Quasar já aplicou o inline style
+    setTimeout(() => {
+    }, 120)
+  })
 }
 
 // Inicializar autenticação e tema ao montar o componente

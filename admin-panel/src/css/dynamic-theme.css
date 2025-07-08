@@ -1,0 +1,110 @@
+/* Este arquivo é carregado dinamicamente para aplicar a cor tema em toda a aplicação */
+:root {
+  --q-primary: var(--primary-color, #1976d2) !important;
+  --q-color-primary: var(--primary-color, #1976d2) !important;
+}
+
+.text-primary {
+  color: var(--primary-color, #1976d2) !important;
+}
+
+.q-header .q-toolbar {
+  background-color: var(--primary-color, #1976d2) !important;
+}
+
+.drawer-header {
+  background-color: var(--primary-color, #1976d2) !important;
+}
+
+.q-btn--standard.bg-primary {
+  background-color: var(--primary-color, #1976d2) !important;
+}
+
+/* ITENS DE MENU ATIVOS - COR DINÂMICA */
+.menu-item-active {
+  background-color: var(--primary-color, #1976d2) !important;
+  color: white !important;
+}
+.menu-item-active .q-item__section--avatar .q-icon,
+.menu-item-active .q-item__label {
+  color: white !important;
+}
+body.body--dark .menu-item-active {
+  background-color: var(--primary-color, #1976d2) !important;
+  color: white !important;
+}
+body.body--dark .menu-item-active .q-item__section--avatar .q-icon,
+body.body--dark .menu-item-active .q-item__label {
+  color: white !important;
+}
+body.body--dark .menu-item-active,
+body.body--dark .menu-item-active:focus,
+body.body--dark .menu-item-active:active,
+body.body--dark .menu-item-active:hover,
+body.body--dark .q-item.menu-item-active,
+body.body--dark .q-item.menu-item-active.text-white,
+body.body--dark .q-item.menu-item-active.bg-primary,
+body.body--dark .q-item.menu-item-active.text-white.bg-primary {
+  background-color: var(--primary-color, #1976d2) !important;
+  color: #fff !important;
+}
+body.body--dark .menu-item-active *,
+body.body--dark .q-item.menu-item-active * {
+  color: #fff !important;
+}
+
+/* Abas */
+.q-tab--active {
+  color: var(--primary-color, #1976d2) !important;
+}
+.q-tab__indicator {
+  background-color: var(--primary-color, #1976d2) !important;
+}
+
+/* Campos de formulário */
+.q-field--focused .q-field__control:before,
+.q-field--focused .q-field__control:after {
+  border-color: var(--primary-color, #1976d2) !important;
+}
+
+/* Controles de seleção */
+.q-checkbox__inner--truthy,
+.q-radio__inner--truthy,
+.q-toggle__inner--truthy {
+  color: var(--primary-color, #1976d2) !important;
+}
+
+/* Indicadores de progresso */
+.q-slider__track,
+.q-slider__thumb,
+.q-progress__track,
+.q-circular-progress__track,
+.q .q-loading-bar {
+  background-color: var(--primary-color, #1976d2) !important;
+  stroke: var(--primary-color, #1976d2) !important;
+}
+body.body--dark .q-drawer .menu-item-active,
+body.body--dark .q-drawer .menu-item-active:focus,
+body.body--dark .q-drawer .menu-item-active:active,
+body.body--dark .q-drawer .menu-item-active:hover {
+  background-color: var(--primary-color, #1976d2) !important;
+  color: #fff !important;
+  --q-primary: var(--primary-color, #1976d2) !important;
+}
+body.body--dark .q-drawer .menu-item-active[style*="background-color"] {
+  background-color: var(--primary-color, #1976d2) !important;
+  color: #fff !important;
+  --q-primary: var(--primary-color, #1976d2) !important;
+}
+body.body--dark .q-drawer .menu-item-active[style*="background-color"] *,
+body.body--dark
+  .q-drawer
+  .menu-item-active[style*="background-color"]
+  .q-item__section--avatar
+  .q-icon,
+body.body--dark
+  .q-drawer
+  .menu-item-active[style*="background-color"]
+  .q-item__label {
+  color: #fff !important;
+}

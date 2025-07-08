@@ -20,7 +20,7 @@
           <!-- Logo/Header -->
           <div class="text-center q-mb-lg">
             <q-icon name="content_cut" size="4rem" color="primary" />
-            <h4 class="q-ma-sm login-title">Barbearia App</h4>
+            <h4 class="q-ma-sm login-title">{{ businessName }} - Admin</h4>
             <p class="login-subtitle">Faça login para acessar o sistema</p>
           </div>
 
@@ -137,10 +137,14 @@ import { useRouter } from 'vue-router'
 import { Notify, useQuasar } from 'quasar'
 import { useAuthStore } from 'src/stores/auth'
 import { api as axios } from 'src/boot/axios'
+import { useSettings } from 'src/composables/useSettings'
 
 const router = useRouter()
 const authStore = useAuthStore()
 const $q = useQuasar()
+
+// Configurações dinâmicas
+const { businessName } = useSettings()
 
 // Estado do componente
 const form = ref({
@@ -328,7 +332,7 @@ onMounted(() => {
 }
 
 .login-title {
-  color: #1976d2;
+  color: var(--q-primary, #1976d2);
   font-weight: 600;
   margin: 0;
   transition: color 0.3s ease;
@@ -359,7 +363,7 @@ onMounted(() => {
   }
   
   .login-title {
-    color: #64b5f6;
+    color: var(--q-primary, #64b5f6);
   }
   
   .login-subtitle {

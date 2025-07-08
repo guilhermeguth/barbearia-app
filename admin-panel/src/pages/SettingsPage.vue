@@ -209,18 +209,110 @@
               <div>
                 <div class="text-h6">Configurações Gerais</div>
                 <div class="text-subtitle2 text-grey-6">
-                  Configure opções gerais do sistema
+                  Configure informações básicas da sua barbearia
                 </div>
               </div>
             </div>
 
-            <div class="text-center text-grey-6 q-pa-xl">
-              <q-icon name="construction" size="xl" />
-              <div class="text-h6 q-mt-md">Em Desenvolvimento</div>
-              <div class="text-subtitle2">
-                Esta seção estará disponível em breve com configurações gerais do sistema
+            <q-form @submit="saveGeneralConfig" class="q-gutter-md">
+              <div class="row q-gutter-md">
+                <div class="col-12 col-md-6">
+                  <q-input
+                    v-model="generalConfig.businessName"
+                    label="Nome da Barbearia"
+                    outlined
+                    dense
+                    :rules="[val => !!val || 'Nome da barbearia é obrigatório']"
+                    hint="Este nome aparecerá no app do cliente"
+                  >
+                    <template #prepend>
+                      <q-icon name="business" />
+                    </template>
+                  </q-input>
+                </div>
+
+                <div class="col-12 col-md-6">
+                  <q-input
+                    v-model="generalConfig.primaryColor"
+                    label="Cor Principal"
+                    outlined
+                    dense
+                    :rules="[val => !!val || 'Cor principal é obrigatória', val => /^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/.test(val) || 'Formato inválido (#000000)']"
+                    hint="Formato: #000000 (hexadecimal)"
+                  >
+                    <template #prepend>
+                      <q-icon name="palette" />
+                    </template>
+                    <template #append>
+                      <q-btn
+                        round
+                        dense
+                        flat
+                        icon="colorize"
+                        :style="{ backgroundColor: generalConfig.primaryColor }"
+                        @click="showColorPicker = true"
+                      />
+                    </template>
+                  </q-input>
+                </div>
               </div>
+
+              <div class="row justify-end q-gutter-sm">
+                <q-btn
+                  label="Cancelar"
+                  color="grey-6"
+                  flat
+                  @click="loadGeneralConfig"
+                />
+                <q-btn
+                  label="Salvar Configurações"
+                  color="primary"
+                  type="submit"
+                  :loading="savingGeneral"
+                  icon="save"
+                />
+              </div>
+            </q-form>
+          </q-card-section>
+        </q-card>
+
+        <!-- Informações Adicionais -->
+        <q-card flat bordered>
+          <q-card-section>
+            <div class="text-subtitle1 text-weight-medium q-mb-md">
+              <q-icon name="info" size="sm" class="q-mr-sm" />
+              Informações Importantes
             </div>
+            
+            <q-list>
+              <q-item>
+                <q-item-section avatar>
+                  <q-avatar size="32px" color="info" text-color="white">
+                    <q-icon name="palette" size="16px" />
+                  </q-avatar>
+                </q-item-section>
+                <q-item-section>
+                  <q-item-label class="text-weight-medium">Cor Principal</q-item-label>
+                  <q-item-label caption class="text-grey-6">
+                    A cor será aplicada em botões, links e elementos de destaque no app do cliente
+                  </q-item-label>
+                </q-item-section>
+              </q-item>
+              
+              <q-item>
+                <q-item-section avatar>
+                  <q-avatar size="32px" color="info" text-color="white">
+                    <q-icon name="refresh" size="16px" />
+                  </q-avatar>
+                </q-item-section>
+                <q-item-section>
+                  <q-item-label class="text-weight-medium">Aplicação das Mudanças</q-item-label>
+                  <q-item-label caption class="text-grey-6">
+                    Clientes precisarão atualizar o app para ver as mudanças
+                  </q-item-label>
+                </q-item-section>
+              </q-item>
+            </q-list>
           </q-card-section>
         </q-card>
       </q-tab-panel>
@@ -508,6 +600,28 @@
         </q-card>
       </q-tab-panel>
     </q-tab-panels>
+
+    <!-- Color Picker Dialog -->
+    <q-dialog v-model="showColorPicker">
+      <q-card style="width: 300px">
+        <q-card-section>
+          <div class="text-h6">Escolher Cor</div>
+        </q-card-section>
+        <q-card-section>
+          <q-color
+            v-model="generalConfig.primaryColor"
+            default-view="palette"
+            format-model="hex"
+            no-header
+            no-footer
+          />
+        </q-card-section>
+        <q-card-actions align="right">
+          <q-btn flat label="Cancelar" color="grey-6" v-close-popup />
+          <q-btn flat label="OK" color="primary" v-close-popup />
+        </q-card-actions>
+      </q-card>
+    </q-dialog>
   </q-page>
 </template>
 
@@ -515,19 +629,25 @@
 import { defineComponent, ref, onMounted, computed } from 'vue'
 import { useQuasar } from 'quasar'
 import { api } from 'boot/axios'
+import { useSettings } from 'src/composables/useSettings'
 
 export default defineComponent({
   name: 'SettingsPage',
   setup() {
     const $q = useQuasar()
     
-    const activeTab = ref('email')
+    // Configurações dinâmicas
+    const { refreshSettings } = useSettings()
+    
+    const activeTab = ref('general')
     const loading = ref(false)
     const saving = ref(false)
     const testing = ref(false)
     const sendingTest = ref(false)
     const testingReminders = ref(false)
     const loadingReminderStatus = ref(false)
+    const savingGeneral = ref(false)
+    const showColorPicker = ref(false)
     const connectionStatus = ref(null)
     const testEmail = ref('')
     const hasPassword = ref(false)
@@ -545,6 +665,55 @@ export default defineComponent({
       pass: '',
       secure: true
     })
+
+    const generalConfig = ref({
+      businessName: '',
+      primaryColor: '#1976D2'
+    })
+
+    // Carregar configurações gerais
+    const loadGeneralConfig = async () => {
+      loading.value = true
+      try {
+        const response = await api.get('/settings/general')
+        generalConfig.value = response.data
+      } catch (error) {
+        console.error('Erro ao carregar configurações gerais:', error)
+        $q.notify({
+          type: 'negative',
+          message: 'Erro ao carregar configurações gerais',
+          caption: error.response?.data?.message
+        })
+      } finally {
+        loading.value = false
+      }
+    }
+
+    // Salvar configurações gerais
+    const saveGeneralConfig = async () => {
+      savingGeneral.value = true
+      try {
+        await api.put('/settings/general', generalConfig.value)
+        
+        // Atualizar configurações globais
+        await refreshSettings()
+        
+        $q.notify({
+          type: 'positive',
+          message: 'Configurações gerais salvas!',
+          icon: 'check'
+        })
+      } catch (error) {
+        console.error('Erro ao salvar configurações gerais:', error)
+        $q.notify({
+          type: 'negative',
+          message: 'Erro ao salvar configurações gerais',
+          caption: error.response?.data?.message
+        })
+      } finally {
+        savingGeneral.value = false
+      }
+    }
 
     // Carregar status das notificações
     const loadNotificationStatus = async () => {
@@ -780,6 +949,7 @@ export default defineComponent({
     }
 
     onMounted(() => {
+      loadGeneralConfig()
       loadSmtpConfig()
       loadNotificationStatus()
       loadReminderStatus()
@@ -793,8 +963,11 @@ export default defineComponent({
       sendingTest,
       testingReminders,
       loadingReminderStatus,
+      savingGeneral,
+      showColorPicker,
       connectionStatus,
       smtpConfig,
+      generalConfig,
       testEmail,
       hasPassword,
       reminderStatus,
@@ -805,7 +978,9 @@ export default defineComponent({
       resetConfig,
       loadNotificationStatus,
       loadReminderStatus,
-      testReminders
+      testReminders,
+      loadGeneralConfig,
+      saveGeneralConfig
     }
   }
 })

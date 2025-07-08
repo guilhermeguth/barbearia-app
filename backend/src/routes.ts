@@ -9,6 +9,7 @@ import { AppointmentController } from "./controllers/AppointmentController";
 import { CustomerAppointmentController } from "./controllers/CustomerAppointmentController";
 import { ReminderController } from "./controllers/ReminderController";
 import { SettingsController } from "./controllers/SettingsController";
+import { SettingController } from "./controllers/SettingController";
 import { authMiddleware } from "./middlewares/authMiddleware";
 import {
   requireAdmin,
@@ -32,11 +33,109 @@ const appointmentController = new AppointmentController();
 const customerAppointmentController = new CustomerAppointmentController();
 const reminderController = new ReminderController();
 const settingsController = new SettingsController();
+const settingController = new SettingController();
 
 routes.post("/user/create", userController.create);
 routes.post("/auth/login", authController.login);
 routes.post("/auth/forgot-password", authController.forgotPassword);
 routes.post("/auth/reset-password", authController.resetPassword);
+
+// Configurações gerais públicas (sem autenticação)
+routes.get(
+  "/public/settings",
+  (req, res) => settingController.getGeneralSettings(req, res),
+);
+
+// Servir manifest.json dinamicamente (sem autenticação)
+routes.get("/manifest.json", async (_req, res) => {
+  try {
+    // Headers CORS e cache
+    res.set("Access-Control-Allow-Origin", "*");
+    res.set("Content-Type", "application/manifest+json");
+    res.set("Cache-Control", "no-cache, no-store, must-revalidate");
+    res.set("Pragma", "no-cache");
+    res.set("Expires", "0");
+
+    const { SettingService } = require("./repositories/settingRepository");
+    const config = await SettingService.getGeneralConfig();
+
+    const manifest = {
+      name: `${config.businessName} - Agendamento Online`,
+      short_name: config.businessName,
+      description:
+        `Aplicativo para agendamento de horários na ${config.businessName}`,
+      display: "standalone",
+      start_url: "/",
+      scope: "/",
+      orientation: "portrait",
+      background_color: "#ffffff",
+      theme_color: config.primaryColor,
+      lang: "pt-BR",
+      prefer_related_applications: false,
+      icons: [
+        {
+          src: "/icons/icon-192x192.png",
+          sizes: "192x192",
+          type: "image/png",
+          purpose: "any",
+        },
+        {
+          src: "/icons/icon-512x512.png",
+          sizes: "512x512",
+          type: "image/png",
+          purpose: "any",
+        },
+        {
+          src: "/icons/icon-512x512.png",
+          sizes: "512x512",
+          type: "image/png",
+          purpose: "maskable",
+        },
+      ],
+    };
+
+    res.json(manifest);
+  } catch (_error) {
+    // Headers CORS para fallback também
+    res.set("Access-Control-Allow-Origin", "*");
+    res.set("Content-Type", "application/manifest+json");
+
+    // Fallback para manifest padrão
+    res.status(200).json({
+      name: "Barbearia - Agendamento Online",
+      short_name: "Barbearia",
+      description: "Aplicativo para agendamento de horários na barbearia",
+      display: "standalone",
+      start_url: "/",
+      scope: "/",
+      orientation: "portrait",
+      background_color: "#ffffff",
+      theme_color: "#1976D2",
+      lang: "pt-BR",
+      prefer_related_applications: false,
+      icons: [
+        {
+          src: "/icons/icon-192x192.png",
+          sizes: "192x192",
+          type: "image/png",
+          purpose: "any",
+        },
+        {
+          src: "/icons/icon-512x512.png",
+          sizes: "512x512",
+          type: "image/png",
+          purpose: "any",
+        },
+        {
+          src: "/icons/icon-512x512.png",
+          sizes: "512x512",
+          type: "image/png",
+          purpose: "maskable",
+        },
+      ],
+    });
+  }
+});
 
 // Rota de teste para debug
 routes.get("/test-reminder", (_req, res) => {
@@ -409,6 +508,32 @@ routes.post(
   requireAdmin,
   (req, res) => settingsController.initializeSettings(req, res),
 );
+
+// Configurações gerais
+routes.get(
+  "/settings/general",
+  requireAdmin,
+  (req, res) => settingController.getGeneralSettings(req, res),
+);
+routes.put(
+  "/settings/general",
+  requireAdmin,
+  (req, res) => settingController.updateGeneralSettings(req, res),
+);
+
+// Rota pública para configurações
+routes.get("/public/settings", async (_req, res) => {
+  try {
+    const { SettingService } = require("./repositories/settingRepository");
+    const config = await SettingService.getGeneralConfig();
+    res.json(config);
+  } catch (_error) {
+    res.status(500).json({
+      businessName: "Barbearia",
+      primaryColor: "#1976D2",
+    });
+  }
+});
 
 routes.post("/auth/logout", authController.logout);
 routes.get("/auth/authenticate", authController.authenticate);

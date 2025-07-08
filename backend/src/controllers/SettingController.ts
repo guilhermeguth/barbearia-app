@@ -110,4 +110,46 @@ export class SettingController {
       );
     }
   }
+
+  async getGeneralSettings(_req: Request, res: Response) {
+    try {
+      const config = await SettingService.getGeneralConfig();
+      res.status(200).json(config);
+    } catch (error) {
+      console.error("Erro ao buscar configurações gerais:", error);
+      throw new BadRequestError("Erro ao buscar configurações");
+    }
+  }
+
+  async updateGeneralSettings(req: Request, res: Response) {
+    try {
+      const { businessName, primaryColor } = req.body;
+
+      if (!businessName || !primaryColor) {
+        throw new BadRequestError(
+          "Nome da barbearia e cor principal são obrigatórios",
+        );
+      }
+
+      // Validar formato de cor (hex)
+      const colorRegex = /^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/;
+      if (!colorRegex.test(primaryColor)) {
+        throw new BadRequestError(
+          "Cor deve estar no formato hexadecimal (#000000)",
+        );
+      }
+
+      await SettingService.setGeneralConfig({
+        businessName,
+        primaryColor,
+      });
+
+      res.status(200).json({
+        message: "Configurações gerais atualizadas com sucesso",
+      });
+    } catch (error) {
+      console.error("Erro ao atualizar configurações gerais:", error);
+      throw new BadRequestError("Erro ao atualizar configurações");
+    }
+  }
 }

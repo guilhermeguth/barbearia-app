@@ -12,6 +12,7 @@ export default defineConfig((/* ctx */) => {
     // --> boot files are part of "main.js"
     // https://v2.quasar.dev/quasar-cli-vite/boot-files
     boot: [
+      'manifest',
       'axios',
       'auth'
     ],
@@ -143,11 +144,21 @@ export default defineConfig((/* ctx */) => {
     // https://v2.quasar.dev/quasar-cli-vite/developing-pwa/configuring-pwa
     pwa: {
       workboxMode: 'InjectManifest',
-      injectPwaMetaTags: true,
+      injectPwaMetaTags: false, // Desabilitar meta tags automáticas
       swFilename: 'sw.js',
       manifestFilename: 'manifest.json',
       useCredentialsForManifestTag: false,
-      useFilenameHashing: true
+      useFilenameHashing: true,
+      
+      // Desabilitar a geração automática do manifest
+      extendManifestJson() {
+        return null // Não gerar manifest automático
+      },
+      
+      // Desabilitar o manifest link automático
+      metaVariables: {
+        manifestPath: '' // Não inserir link do manifest
+      }
     },
 
     // Full list of options: https://v2.quasar.dev/quasar-cli-vite/developing-cordova-apps/configuring-cordova

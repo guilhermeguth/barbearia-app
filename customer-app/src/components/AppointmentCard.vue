@@ -1,5 +1,5 @@
 <template>
-  <q-card class="appointment-card">
+  <q-card class="appointment-card" :style="{ borderLeftColor: primaryColor }">
     <!-- Layout para Desktop -->
     <q-card-section class="row items-center justify-start q-py-md q-px-lg desktop-layout">
       <!-- Status -->
@@ -17,7 +17,7 @@
       <!-- Data e Hora -->
       <div class="col-3 datetime-section">
         <div class="row items-center">
-          <q-icon name="schedule" size="18px" class="q-mr-sm text-primary" />
+          <q-icon name="schedule" size="18px" class="q-mr-sm" :color="primaryColor" />
           <div>
             <div class="text-body2 text-weight-medium datetime-text">
               {{ formatDateTime(appointment.scheduledDateTime) }}
@@ -82,7 +82,7 @@
             class="mobile-status-chip"
           />
           <div class="mobile-datetime">
-            <q-icon name="schedule" size="14px" class="q-mr-xs text-primary" />
+            <q-icon name="schedule" size="14px" class="q-mr-xs" :color="primaryColor" />
             <span class="datetime-mobile">{{ formatDateTime(appointment.scheduledDateTime) }}</span>
           </div>
         </div>
@@ -125,6 +125,7 @@
 
 <script>
 import { defineComponent, computed } from 'vue'
+import { useSettings } from 'src/composables/useSettings'
 
 export default defineComponent({
   name: 'AppointmentCard',
@@ -143,6 +144,8 @@ export default defineComponent({
   emits: ['cancel'],
 
   setup(props) {
+    const { primaryColor } = useSettings()
+    
     const canCancel = computed(() => {
       if (props.appointment.status !== 'scheduled') return false
       
@@ -159,7 +162,8 @@ export default defineComponent({
     })
 
     return {
-      canCancel
+      canCancel,
+      primaryColor
     }
   },
 
@@ -232,7 +236,7 @@ export default defineComponent({
 <style lang="scss" scoped>
 .appointment-card {
   border-radius: 8px;
-  border-left: 4px solid $primary;
+  border-left: 4px solid; // Removido $primary, agora usa a cor dinâmica
   transition: transform 0.2s ease, box-shadow 0.2s ease;
   width: 100%;
   

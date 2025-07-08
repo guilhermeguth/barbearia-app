@@ -13,7 +13,7 @@
 
         <q-toolbar-title class="text-weight-bold">
           <q-icon name="content_cut" class="q-mr-sm" />
-          Barbearia
+          {{ businessName }}
         </q-toolbar-title>
 
         <!-- Botão de perfil/logout com miniatura da foto -->
@@ -135,10 +135,12 @@
 import { ref, onMounted, computed, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from 'src/stores'
+import { useSettings } from 'src/composables/useSettings'
 import { api } from 'src/boot/axios'
 
 const router = useRouter()
 const authStore = useAuthStore()
+const { businessName } = useSettings()
 
 const leftDrawerOpen = ref(false)
 const photoError = ref(false)

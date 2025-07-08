@@ -9,7 +9,7 @@
               <q-icon name="content_cut" size="60px" color="white" />
             </q-avatar>
             <div class="text-h4 text-white text-weight-bold">
-              Barbearia
+              {{ businessName }}
             </div>
             <div class="text-h6 text-white opacity-80">
               Agendamento Online
@@ -29,7 +29,10 @@
 </template>
 
 <script setup>
+import { useSettings } from 'src/composables/useSettings'
+
 // Layout simples para páginas de autenticação
+const { businessName } = useSettings()
 </script>
 
 <style lang="scss" scoped>

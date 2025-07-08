@@ -3,7 +3,7 @@
     <!-- Título -->
     <div class="text-center q-mb-md">
       <div class="text-h5 text-weight-bold text-grey-8">Entrar</div>
-      <div class="text-body2 text-grey-6">Acesse sua conta</div>
+      <div class="text-body2 text-grey-6">Acesse sua conta no {{ businessName }}</div>
     </div>
 
     <!-- Formulário de Login -->
@@ -84,9 +84,11 @@ import { ref, reactive } from 'vue'
 import { useRouter } from 'vue-router'
 import { Notify } from 'quasar'
 import { useAuthStore } from 'src/stores'
+import { useSettings } from 'src/composables/useSettings'
 
 const router = useRouter()
 const authStore = useAuthStore()
+const { businessName } = useSettings()
 
 const showPassword = ref(false)
 

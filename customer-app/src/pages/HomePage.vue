@@ -8,7 +8,7 @@
             Olá, {{ authStore.user?.name || 'Cliente' }}! 👋
           </h1>
           <p class="text-body1 text-grey-6 q-mt-sm q-mb-none">
-            Pronto para agendar seu próximo corte?
+            Bem-vindo ao {{ businessName }}. Pronto para agendar seu próximo corte?
           </p>
         </div>
       </div>
@@ -92,11 +92,13 @@
 import { computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore, useAppointmentStore } from 'src/stores'
+import { useSettings } from 'src/composables/useSettings'
 import AppointmentCard from 'src/components/AppointmentCard.vue'
 
 const router = useRouter()
 const authStore = useAuthStore()
 const appointmentStore = useAppointmentStore()
+const { businessName } = useSettings()
 
 // Computed
 // Exibir todos os agendamentos se não houver futuros

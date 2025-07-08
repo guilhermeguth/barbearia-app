@@ -4,10 +4,16 @@
 
 <script setup>
 import { onMounted } from 'vue'
+import { useSettings } from 'src/composables/useSettings'
+
+const { loadSettings } = useSettings()
 
 let deferredPrompt = null
 
-onMounted(() => {
+onMounted(async () => {
+  // Carregar configurações da barbearia
+  await loadSettings()
+  
   // Aguarda o evento de prompt de instalação
   addEventListener('beforeinstallprompt', (e) => {
     console.log('beforeinstallprompt event captured')
