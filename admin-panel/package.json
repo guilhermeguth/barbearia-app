@@ -17,7 +17,7 @@
     "build:prod": "quasar build --mode production",
     "build:with-env": "quasar build",
     "postinstall": "quasar prepare",
-    "start": "serve dist/spa"
+    "start": "serve -s dist/spa"
   },
   "dependencies": {
     "@fullcalendar/core": "^6.1.18",

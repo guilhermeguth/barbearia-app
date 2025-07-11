@@ -17,7 +17,7 @@
     "build:spa": "quasar build",
     "build:pwa": "quasar build -m pwa",
     "postinstall": "quasar prepare",
-    "start": "serve dist/pwa"
+    "start": "serve -s dist/pwa"
   },
   "dependencies": {
     "@quasar/extras": "^1.16.4",
