@@ -3,11 +3,8 @@ import axios from 'axios'
 import { Dialog } from 'quasar'
 
 
-// Monta a baseURL usando VITE_API_HOST e VITE_API_PORT, se disponíveis
-const API_BASE_URL =
-  (import.meta.env.VITE_API_HOST && import.meta.env.VITE_API_PORT)
-    ? `http://${import.meta.env.VITE_API_HOST}:${import.meta.env.VITE_API_PORT}`
-    : (import.meta.env.VITE_API_BASE_URL || 'http://localhost:3001');
+// Usa VITE_API_BASE_URL diretamente do .env, ou fallback para localhost
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3001';
 const API_TIMEOUT = parseInt(import.meta.env.VITE_API_TIMEOUT) || 15000
 
 console.log('🔧 API configurada para:', API_BASE_URL)
