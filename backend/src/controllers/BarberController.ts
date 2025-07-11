@@ -41,39 +41,35 @@ export class BarberController {
     }
 
     if (!barber) {
-      // Criar novo barbeiro - precisa criar usuário também
-      if (!post?.password) {
-        throw new BadRequestError("Senha é obrigatória para novo barbeiro");
+      // Permitir criar barbeiro sem usuário vinculado
+      let savedUser = null;
+      if (post?.email) {
+        // Se email foi informado, tentar buscar usuário existente
+        const existingUser = await userRepository.findOneBy({ email: post.email });
+        if (existingUser) {
+          savedUser = existingUser;
+        } else if (post?.password) {
+          // Se não existe usuário e senha foi enviada, criar usuário
+          const hashedPassword = await bcrypt.hash(post.password, 10);
+          const user = userRepository.create({
+            name: post.name,
+            email: post.email,
+            password: hashedPassword,
+            role: UserRole.ADMIN,
+            createdAt: new Date(),
+          });
+          savedUser = await userRepository.save(user);
+        }
+        // Se não existe usuário e não foi enviada senha, não cria usuário
       }
-
-      // Verificar se já existe usuário com este email
-      const existingUser = await userRepository.findOneBy({
-        email: post.email,
-      });
-      if (existingUser) {
-        throw new BadRequestError("Já existe um usuário com este email");
-      }
-
-      // Criar usuário admin
-      const hashedPassword = await bcrypt.hash(post.password, 10);
-      const user = userRepository.create({
-        name: post.name,
-        email: post.email,
-        password: hashedPassword,
-        role: UserRole.ADMIN,
-        createdAt: new Date(),
-      });
-
-      const savedUser = await userRepository.save(user);
-
-      // Criar barbeiro
+      // Criar barbeiro (com ou sem usuário)
       barber = barberRepository.create({
         name: post.name,
         email: post.email,
         phone: post.phone,
         photoUrl: photoPath || undefined,
-        user: savedUser,
-        userId: savedUser.id,
+        user: savedUser || undefined,
+        userId: savedUser ? savedUser.id : undefined,
         createdAt: new Date(),
       });
     } else {

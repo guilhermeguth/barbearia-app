@@ -16,51 +16,58 @@ const routes = [
     component: () => import('layouts/MainLayout.vue'),
     beforeEnter: requireAuth,
     children: [
-      { 
-        path: '', 
-        redirect: 'dashboard' 
+      {
+        path: '',
+        redirect: 'dashboard'
       },
-      { 
-        path: 'dashboard', 
+      {
+        path: 'dashboard',
         component: () => import('pages/IndexPage.vue'),
         name: 'dashboard'
       },
-      { 
-        path: 'agendamentos', 
+      {
+        path: 'agendamentos',
         component: () => import('pages/CalendarPage.vue'),
         name: 'agendamentos'
       },
-      { 
-        path: 'calendario', 
+      {
+        path: 'calendario',
         component: () => import('pages/CalendarPage.vue'),
         name: 'calendario'
       },
-      { 
-        path: 'barbeiros', 
+      {
+        path: 'barbeiros',
         component: () => import('pages/BarbeirosPage.vue'),
         name: 'barbeiros'
       },
-      { 
-        path: 'servicos', 
+      {
+        path: 'servicos',
         component: () => import('pages/ServicosPage.vue'),
         name: 'servicos'
       },
-      { 
-        path: 'clientes', 
+      {
+        path: 'clientes',
         component: () => import('pages/ClientesPage.vue'),
         name: 'clientes'
       },
-      { 
-        path: 'relatorios', 
+      {
+        path: 'relatorios',
         component: () => import('pages/RelatoriosPage.vue'),
         name: 'relatorios'
       },
-      { 
-        path: 'configuracoes', 
+      {
+        path: 'configuracoes',
         component: () => import('pages/SettingsPage.vue'),
         name: 'configuracoes'
       }
     ]
+  },
+
+  // Rota pública para registro de admin
+  {
+    path: '/registrar-admin',
+    component: () => import('pages/RegisterAdminPage.vue'),
+    name: 'registrar-admin'
   },
 
   // Always leave this as last one,

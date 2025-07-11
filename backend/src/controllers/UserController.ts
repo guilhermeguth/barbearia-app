@@ -3,6 +3,8 @@ import { BadRequestError } from "../helpers/api-errors";
 import { userRepository } from "../repositories/userRepository";
 import bcrypt from "bcrypt";
 
+import { UserRole } from "../entities/User";
+
 export class UserController {
   async create(req: Request, res: Response) {
     const post = req.body;
@@ -19,10 +21,19 @@ export class UserController {
 
     const hashPassword = await bcrypt.hash(post.password, 10);
 
+    // Se for registro de admin, validar a chave
+    if (post.role === UserRole.ADMIN) {
+      const adminKey = post.adminRegistrationKey;
+      if (!adminKey || adminKey !== process.env.ADMIN_REGISTRATION_KEY) {
+        throw new BadRequestError("Chave de registro de admin inválida");
+      }
+    }
+
     const user = userRepository.create({
       name: post.name,
       email: post.email,
       password: hashPassword,
+      role: post.role || UserRole.CUSTOMER,
     });
 
     await userRepository.save(user);
@@ -33,6 +44,7 @@ export class UserController {
         id: user.id,
         name: user.name,
         email: user.email,
+        role: user.role,
       },
     });
   }

@@ -2,13 +2,17 @@ import { defineBoot } from '#q-app/wrappers'
 import axios from 'axios'
 import { Dialog } from 'quasar'
 
-// Configuração simples da URL base
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3001'
+
+// Monta a baseURL usando VITE_API_HOST e VITE_API_PORT, se disponíveis
+const API_BASE_URL =
+  (import.meta.env.VITE_API_HOST && import.meta.env.VITE_API_PORT)
+    ? `http://${import.meta.env.VITE_API_HOST}:${import.meta.env.VITE_API_PORT}`
+    : (import.meta.env.VITE_API_BASE_URL || 'http://localhost:3001');
 const API_TIMEOUT = parseInt(import.meta.env.VITE_API_TIMEOUT) || 15000
 
 console.log('🔧 API configurada para:', API_BASE_URL)
 
-const api = axios.create({ 
+const api = axios.create({
   baseURL: API_BASE_URL,
   timeout: API_TIMEOUT,
   headers: {
@@ -38,7 +42,7 @@ api.interceptors.response.use(
   (error) => {
     if (error.response?.status === 401) {
       // Token expirado ou inválido
-      
+
       // Mostrar dialog de aviso antes de fazer logout
       Dialog.create({
         title: '⚠️ Sessão Expirada',
@@ -51,11 +55,11 @@ api.interceptors.response.use(
         // Limpar dados
         localStorage.removeItem('auth_token')
         localStorage.removeItem('user_data')
-        
+
         // Recarregar a página para forçar redirecionamento
         location.reload()
       })
-      
+
       console.log('Token inválido, usuário precisa fazer login novamente')
     }
     return Promise.reject(error)

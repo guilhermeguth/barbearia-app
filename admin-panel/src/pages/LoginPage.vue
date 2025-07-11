@@ -92,6 +92,17 @@
               </q-form>
             </q-card-section>
           </q-card>
+          <!-- Link para registro de admin -->
+          <div class="text-center q-mt-md">
+            <q-btn
+              flat
+              color="secondary"
+              size="sm"
+              @click="router.push({ name: 'registrar-admin' })"
+            >
+              Registrar novo administrador
+            </q-btn>
+          </div>
         </div>
 
         <!-- Dialog para recuperar senha -->
