@@ -1,11 +1,9 @@
 import { defineBoot } from '#q-app/wrappers'
 import axios from 'axios'
 
-// Configurar base URL da API da barbearia
-const isDev = process.env.NODE_ENV === 'development'
-const baseURL = isDev 
-  ? 'http://localhost:3001' // Backend em desenvolvimento
-  : process.env.API_BASE_URL || 'http://localhost:3001'
+
+// Configuração correta para Quasar/Vite: use import.meta.env
+const baseURL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3001'
 
 const api = axios.create({ 
   baseURL,
