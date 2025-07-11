@@ -24,6 +24,7 @@
         </template>
       </q-input>
 
+
       <!-- Email -->
       <q-input
         v-model="form.email"
@@ -38,6 +39,39 @@
       >
         <template #prepend>
           <q-icon name="email" />
+        </template>
+      </q-input>
+
+      <!-- Telefone -->
+      <q-input
+        v-model="form.phone"
+        label="Telefone"
+        outlined
+        dense
+        mask="(##) #####-####"
+        :rules="[
+          val => !!val || 'Telefone é obrigatório',
+          val => val.length >= 14 || 'Telefone inválido'
+        ]"
+      >
+        <template #prepend>
+          <q-icon name="phone" />
+        </template>
+      </q-input>
+
+      <!-- Data de Nascimento -->
+      <q-input
+        v-model="form.birthDate"
+        label="Data de nascimento"
+        outlined
+        dense
+        type="date"
+        :rules="[
+          val => !!val || 'Data de nascimento é obrigatória'
+        ]"
+      >
+        <template #prepend>
+          <q-icon name="event" />
         </template>
       </q-input>
 
@@ -135,6 +169,8 @@ const showConfirmPassword = ref(false)
 const form = reactive({
   name: '',
   email: '',
+  phone: '',
+  birthDate: '',
   password: '',
   confirmPassword: ''
 })
@@ -143,6 +179,8 @@ async function handleRegister() {
   const result = await authStore.register({
     name: form.name,
     email: form.email,
+    phone: form.phone,
+    birthDate: form.birthDate,
     password: form.password
   })
   

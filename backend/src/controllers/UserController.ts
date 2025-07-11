@@ -4,6 +4,7 @@ import { userRepository } from "../repositories/userRepository";
 import bcrypt from "bcrypt";
 
 import { UserRole } from "../entities/User";
+import { customerRepository } from "../repositories/customerRepository";
 
 export class UserController {
   async create(req: Request, res: Response) {
@@ -34,9 +35,23 @@ export class UserController {
       email: post.email,
       password: hashPassword,
       role: post.role || UserRole.CUSTOMER,
+      phone: post.phone || null,
     });
 
     await userRepository.save(user);
+
+    let customer = null;
+    if (user.role === UserRole.CUSTOMER) {
+      customer = customerRepository.create({
+        name: user.name,
+        email: user.email,
+        phone: user.phone,
+        birthDate: post.birthDate || null,
+        userId: user.id,
+        user,
+      });
+      await customerRepository.save(customer);
+    }
 
     res.status(201).json({
       message: "Usuário criado com sucesso",
@@ -45,6 +60,8 @@ export class UserController {
         name: user.name,
         email: user.email,
         role: user.role,
+        phone: user.phone,
+        birthDate: customer ? customer.birthDate : null,
       },
     });
   }
