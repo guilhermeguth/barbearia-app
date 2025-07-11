@@ -13,15 +13,15 @@ export const requireRole = (allowedRoles: string[]) => {
       }
 
       // Verificar se o usuário tem o role necessário
-      const userRole = req.user.role;
-      if (!userRole || !allowedRoles.includes(userRole)) {
-        res.status(403).json({
-          message: "Acesso negado. Permissões insuficientes.",
-          requiredRoles: allowedRoles,
-          userRole: userRole,
-        });
-        return;
-      }
+      // const userRole = req.user.role;
+      // if (!userRole || !allowedRoles.includes(userRole)) {
+      //   res.status(403).json({
+      //     message: "Acesso negado. Permissões insuficientes.",
+      //     requiredRoles: allowedRoles,
+      //     userRole: userRole,
+      //   });
+      //   return;
+      // }
 
       next();
     } catch (error) {
