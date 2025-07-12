@@ -156,8 +156,16 @@ export class AppointmentController {
         totalPrice += servicePrice;
       }
 
-      // Criar data/hora completa
-      const scheduledDateTime = new Date(`${appointmentDate}T${startTime}:00`);
+
+      // Criar data/hora completa de forma robusta
+      let scheduledDateTime: Date;
+      if (typeof appointmentDate === 'string' && appointmentDate.includes('T')) {
+        // Se já está em formato ISO completo, usar diretamente
+        scheduledDateTime = new Date(appointmentDate);
+      } else {
+        // Montar a data/hora
+        scheduledDateTime = new Date(`${appointmentDate}T${startTime}:00`);
+      }
 
       // Verificar se o horário está disponível
       const existingAppointment = await appointmentRepository.findOne({
