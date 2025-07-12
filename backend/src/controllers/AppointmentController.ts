@@ -929,7 +929,6 @@ export class AppointmentController {
     }
   }
 
-  // Criar agendamento recorrente
   async createRecurringAppointment(req: Request, res: Response) {
     try {
       const {
@@ -943,6 +942,11 @@ export class AppointmentController {
         recurrenceEndDate,
         recurrenceCount = 10, // máximo de 10 repetições
       } = req.body;
+
+      // Garantir que recurrenceType seja string
+      const recurrenceTypeString = typeof recurrenceType === 'string'
+        ? recurrenceType
+        : recurrenceType?.value || recurrenceType?.toString() || 'none';
 
       // Validações básicas
       if (
@@ -973,62 +977,73 @@ export class AppointmentController {
       const servicePrice = typeof service.price === "string"
         ? parseFloat(service.price)
         : service.price;
-      const firstDateTime = new Date(`${appointmentDate}T${startTime}:00`);
-      const endDate = recurrenceEndDate ? new Date(recurrenceEndDate) : null;
 
-      // Criar agendamento pai
-      const parentAppointment = appointmentRepository.create({
-        customerId,
-        barberId,
-        serviceId: serviceIds[0],
-        scheduledDateTime: firstDateTime,
-        totalPrice: Number(servicePrice),
-        notes: notes || null,
-        status: AppointmentStatus.SCHEDULED,
-        recurrenceType,
-        recurrenceEndDate: endDate || undefined,
-        isRecurringParent: true,
-      });
+      // Criar datas com mais controle
+      const [year, month, day] = appointmentDate.split('-').map(Number);
+      const [hour, minute] = startTime.split(':').map(Number);
+      const firstDateTime = new Date(year, month - 1, day, hour, minute, 0, 0);
+      
+      // Criar data limite apenas com ano/mês/dia para comparação
+      let endDate = null;
+      if (recurrenceEndDate) {
+        const [endYear, endMonth, endDay] = recurrenceEndDate.split('-').map(Number);
+        endDate = new Date(endYear, endMonth - 1, endDay, 23, 59, 59, 999); // Final do dia
+      }
 
-      const savedParent = await appointmentRepository.save(parentAppointment);
-
-      // Criar agendamentos filhos baseado na recorrência
-      const childAppointments = [];
-      const currentDate = new Date(firstDateTime);
+      const allAppointments = [];
+      let currentDate = new Date(firstDateTime);
       let count = 0;
-
-      while (count < recurrenceCount && (!endDate || currentDate <= endDate)) {
-        // Pular a primeira data (já criada como pai)
-        if (count > 0) {
-          // Verificar se não há conflito
-          const existingAppointment = await appointmentRepository.findOne({
-            where: {
-              barberId,
-              scheduledDateTime: currentDate,
-              status: AppointmentStatus.SCHEDULED,
-            },
-          });
-
-          if (!existingAppointment) {
-            const childAppointment = appointmentRepository.create({
-              customerId,
-              barberId,
-              serviceId: serviceIds[0],
-              scheduledDateTime: new Date(currentDate),
-              totalPrice: Number(servicePrice),
-              notes: notes || null,
-              status: AppointmentStatus.SCHEDULED,
-              recurrenceType,
-              parentAppointmentId: (savedParent as any).id,
-              isRecurringParent: false,
-            });
-
-            childAppointments.push(childAppointment);
+      let isFirst = true;
+      let iteration = 0;
+      
+      while (true) {
+        iteration++;
+        
+        // Verificar condições de parada
+        if (endDate) {
+          if (currentDate.getTime() > endDate.getTime()) {
+            break;
+          }
+        } else {
+          if (count >= recurrenceCount) {
+            break;
           }
         }
 
-        // Calcular próxima data baseada no tipo de recorrência
-        switch (recurrenceType) {
+        // Verificar se não há conflito
+        const existingAppointment = await appointmentRepository.findOne({
+          where: {
+            barberId,
+            scheduledDateTime: currentDate,
+            status: AppointmentStatus.SCHEDULED,
+          },
+        });
+
+        if (!existingAppointment) {
+          const appointment = appointmentRepository.create({
+            customerId,
+            barberId,
+            serviceId: serviceIds[0],
+            scheduledDateTime: new Date(currentDate),
+            totalPrice: Number(servicePrice),
+            notes: notes || null,
+            status: AppointmentStatus.SCHEDULED,
+            recurrenceType: recurrenceTypeString,
+            recurrenceEndDate: endDate || undefined,
+            isRecurringParent: isFirst,
+          });
+          allAppointments.push(appointment);
+        }
+        
+        // Incrementar contador apenas se não há data limite
+        if (!endDate) {
+          count++;
+        }
+        
+        isFirst = false;
+
+        // Avançar para a próxima data
+        switch (recurrenceTypeString) {
           case "weekly":
             currentDate.setDate(currentDate.getDate() + 7);
             break;
@@ -1039,20 +1054,27 @@ export class AppointmentController {
             currentDate.setMonth(currentDate.getMonth() + 1);
             break;
           default:
-            count = recurrenceCount; // Para parar o loop
+            break;
         }
-        count++;
+        
+        // Proteção contra loop infinito
+        if (iteration > 100) {
+          break;
+        }
       }
 
-      // Salvar agendamentos filhos
-      if (childAppointments.length > 0) {
-        await appointmentRepository.save(childAppointments);
+      // Salvar todos os agendamentos
+      let savedAppointments: any[] = [];
+      if (allAppointments.length > 0) {
+        savedAppointments = await appointmentRepository.save(allAppointments);
       }
 
+      // O primeiro é o pai, os demais são filhos
       res.status(201).json({
         message: "Agendamentos recorrentes criados com sucesso",
-        parentAppointment: savedParent,
-        childrenCount: childAppointments.length,
+        parentAppointment: savedAppointments[0],
+        childrenCount: savedAppointments.length - 1,
+        totalAppointments: savedAppointments.length,
       });
     } catch (error) {
       console.error("Erro ao criar agendamentos recorrentes:", error);

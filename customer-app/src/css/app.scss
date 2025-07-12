@@ -6,7 +6,8 @@
 }
 
 // Garantir que não há overflow horizontal
-html, body {
+html,
+body {
   overflow-x: hidden;
   width: 100%;
 }
@@ -24,10 +25,10 @@ html, body {
 
 // Melhorar espaçamento em mobile
 @media (max-width: 599px) {
-  .q-gutter-md > * {
+  .q-gutter-md>* {
     margin: 8px !important;
   }
-  
+
   .q-pa-md {
     padding: 16px 12px !important;
   }
@@ -48,35 +49,35 @@ html, body {
 @media (max-width: 599px) {
   .q-stepper {
     border-radius: 12px !important;
-    
+
     .q-stepper__header {
       padding: 10px 8px !important;
       min-height: 60px !important;
       max-height: 70px !important;
-      
+
       .q-stepper__tab {
         padding: 8px 4px !important;
         flex: 1 1 auto !important;
         min-width: 0 !important;
         max-width: calc(33.33% - 8px) !important;
-        
+
         .q-stepper__label {
           font-size: 0.75rem !important;
           line-height: 1.1 !important;
         }
-        
+
         .q-stepper__title {
           font-size: 0.7rem !important;
           line-height: 1.2 !important;
         }
       }
-      
+
       .q-stepper__line {
         flex: 0 0 20px !important;
         min-width: 20px !important;
       }
     }
-    
+
     .q-stepper__content {
       padding: 16px 12px !important;
     }
@@ -89,20 +90,20 @@ html, body {
       padding: 8px 6px !important;
       min-height: 55px !important;
       max-height: 65px !important;
-      
+
       .q-stepper__tab {
         padding: 6px 2px !important;
         max-width: calc(33.33% - 6px) !important;
-        
+
         .q-stepper__label {
           font-size: 0.7rem !important;
         }
-        
+
         .q-stepper__title {
           font-size: 0.65rem !important;
         }
       }
-      
+
       .q-stepper__line {
         flex: 0 0 16px !important;
         min-width: 16px !important;
@@ -117,6 +118,6 @@ html, body {
 }
 
 // Melhorar espaçamento de cards
-.q-card + .q-card {
+.q-card+.q-card {
   margin-top: 12px;
 }
