@@ -64,7 +64,6 @@
       <!-- Botão de Redefinir -->
       <q-btn
         type="submit"
-        label="Redefinir Senha"
         color="primary"
         class="full-width q-py-sm"
         :loading="isLoading"

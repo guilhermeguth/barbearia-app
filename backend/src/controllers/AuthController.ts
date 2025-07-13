@@ -7,6 +7,7 @@ import jwt from "jsonwebtoken";
 import bcrypt from "bcrypt";
 import crypto from "crypto";
 import nodemailer from "nodemailer";
+import { UserRole } from "../entities/User";
 
 type JwtPayLoad = {
   id: number;
@@ -123,7 +124,12 @@ export class AuthController {
         },
       });
 
-      const resetUrl = `${process.env.FRONTEND_URL}/reset-password?token=${resetToken}`;
+      console.log('aqui', user, process.env.FRONTEND_URL_APP, process.env.FRONTEND_URL_ADMIN);
+      const frontUrl = user.role !== UserRole.ADMIN 
+        ? process.env.FRONTEND_URL_APP
+        : process.env.FRONTEND_URL_ADMIN;      
+
+      const resetUrl = `${frontUrl}/reset-password?token=${resetToken}`;
 
       const mailOptions = {
         from: smtpConfig.user,

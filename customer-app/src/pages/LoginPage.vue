@@ -58,6 +58,16 @@
         :loading="authStore.isLoading"
         :disable="authStore.isLoading"
       />
+    <!-- Link Esqueceu a senha -->
+    <div class="text-center q-mt-sm">
+      <q-btn
+        flat
+        label="Esqueceu a senha?"
+        color="primary"
+        size="sm"
+        @click="showForgotPassword = true"
+      />
+    </div>
     </q-form>
 
     <!-- Divider -->
@@ -77,6 +87,35 @@
       />
     </div>
   </div>
+  <q-dialog v-model="showForgotPassword" @hide="closeForgotPasswordDialog">
+    <q-card style="min-width: 350px">
+      <q-card-section class="bg-primary text-white">
+        <div class="text-h6">
+          <q-icon name="lock_reset" class="q-mr-sm" />
+          Recuperar Senha
+        </div>
+      </q-card-section>
+      <q-card-section>
+        <q-input
+          v-model="forgotEmail"
+          type="email"
+          label="Digite seu email"
+          outlined
+        />
+      </q-card-section>
+      <q-card-actions align="right">
+        <q-btn flat label="Cancelar" @click="closeForgotPasswordDialog" />
+        <q-btn 
+          flat 
+          label="Enviar" 
+          color="primary" 
+          :loading="isLoading"
+          :disable="!forgotEmail || isLoading"
+          @click="handleForgotPassword"
+        />
+      </q-card-actions>
+    </q-card>
+  </q-dialog>
 </template>
 
 <script setup>
@@ -85,13 +124,15 @@ import { useRouter } from 'vue-router'
 import { Notify } from 'quasar'
 import { useAuthStore } from 'src/stores'
 import { useSettings } from 'src/composables/useSettings'
+import { api as axios } from 'src/boot/axios'
 
 const router = useRouter()
 const authStore = useAuthStore()
 const { businessName } = useSettings()
-
 const showPassword = ref(false)
-
+const showForgotPassword = ref(false)
+const forgotEmail = ref('')
+const isLoading = ref(false)
 const form = reactive({
   email: '',
   password: ''
@@ -99,7 +140,6 @@ const form = reactive({
 
 async function handleLogin() {
   const result = await authStore.login(form.email, form.password)
-  
   if (result.success) {
     Notify.create({
       type: 'positive',
@@ -114,6 +154,46 @@ async function handleLogin() {
       position: 'top'
     })
   }
+}
+
+function closeForgotPasswordDialog() {
+  showForgotPassword.value = false
+  forgotEmail.value = ''
+}
+
+async function handleForgotPassword() {
+  if (!forgotEmail.value) {
+    Notify.create({
+      type: 'warning',
+      message: 'Digite um email válido',
+      position: 'bottom-right'
+    })
+    return
+  }
+  isLoading.value = true
+  try {
+    await axios.post('/auth/forgot-password', {
+      email: forgotEmail.value
+    })
+    Notify.create({
+      type: 'positive',
+      message: 'Se o email existir em nosso sistema, você receberá um link para redefinir sua senha.',
+      position: 'bottom-right',
+      timeout: 5000
+    })
+    showForgotPassword.value = false
+    forgotEmail.value = ''
+  } catch (error) {
+    console.error('Erro ao solicitar recuperação de senha:', error)
+    Notify.create({
+      type: 'negative',
+      message: error.response?.data?.message || 'Erro ao enviar email. Tente novamente.',
+      position: 'bottom-right'
+    })
+  } finally {
+    isLoading.value = false
+  }
+  forgotEmail.value = ''
 }
 
 function goToRegister() {
